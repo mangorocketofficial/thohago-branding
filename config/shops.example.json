@@ -1,0 +1,49 @@
+{
+  "shops": [
+    {
+      "shop_id": "sisun8082",
+      "display_name": "Sisun8082 Head Spa",
+      "invite_tokens": ["sisun8082-start"],
+      "telegram_chat_ids": ["1000001"],
+      "publish": {
+        "provider": "mock_naver",
+        "targets": ["naver_blog"]
+      },
+      "media_hints": [
+        "LED dome",
+        "candle ambiance",
+        "dual chair treatment",
+        "scalp diagnosis"
+      ],
+      "sample_sessions": {
+        "2026_03_27_core": {
+          "base_dir": "client/sisun8082/2026_03_27",
+          "image_dir": "images",
+          "video_dir": "video",
+          "interview_dir": "interview",
+          "turn_transcript_files": [
+            "client/sisun8082/2026_03_27/interview/KakaoTalk_Audio_20260327_1232_18_907.transcript.txt",
+            "client/sisun8082/2026_03_27/interview/KakaoTalk_Audio_20260327_1233_24_386.transcript.txt",
+            "client/sisun8082/2026_03_27/interview/KakaoTalk_Audio_20260327_1253_31_720.transcript.txt"
+          ]
+        }
+      }
+    },
+    {
+      "shop_id": "demo_shop_2",
+      "display_name": "Demo Shop 2",
+      "invite_tokens": ["demo-shop-2-start"],
+      "telegram_chat_ids": ["1000002"],
+      "publish": {
+        "provider": "mock_naver",
+        "targets": ["naver_blog"]
+      },
+      "media_hints": [
+        "consultation desk",
+        "product shelf",
+        "result shot"
+      ],
+      "sample_sessions": {}
+    }
+  ]
+}

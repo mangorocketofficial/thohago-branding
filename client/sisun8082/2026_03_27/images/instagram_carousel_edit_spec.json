@@ -1,0 +1,206 @@
+{
+  "version": "1.0",
+  "type": "instagram_carousel_edit_spec",
+  "created_at": "2026-03-27",
+  "project": "sisun8082",
+  "set_name": "philippines_head_spa_carousel",
+  "status": "draft_ready_for_execution",
+  "source": {
+    "directory": "C:/Users/User/Desktop/Thohago_branding/client/sisun8082/2026_03_27/images",
+    "image_count": 5,
+    "normalize_exif_orientation": true,
+    "exif_orientation_expected": 6,
+    "original_resolution": "4000x3000",
+    "effective_orientation_after_normalize": "3000x4000 portrait",
+    "target_platform": "instagram_feed_carousel"
+  },
+  "creative_direction": {
+    "theme": "필리핀 고객의 부산 head spa 체험",
+    "tone": [
+      "clean",
+      "premium",
+      "friendly",
+      "K-beauty"
+    ],
+    "story_arc": [
+      "1장 훅: 부산 오기 전 미리 예약한 외국인 고객",
+      "2장 정보: 여행 전 예약하고 방문하는 경험",
+      "3장 반응: K-뷰티 만족도와 시원함",
+      "4장 서비스 포인트: LED 헤드스파와 맞춤 케어",
+      "5장 CTA: 서면 점포카페거리 위치와 방문 유도"
+    ],
+    "copy_basis": [
+      "외국인 관광객이 한국 오기 전 미리 예약하고 방문",
+      "한류 영향으로 한국식 헤드스파 체험 수요가 많음",
+      "K-뷰티는 최고다, 너무 시원했다는 반응",
+      "두피 검사 후 맞춤 코스 제안",
+      "서면 점포카페거리 위치 강점"
+    ]
+  },
+  "design_system": {
+    "target_resolution": "1080x1350",
+    "aspect_ratio": "4:5",
+    "crop_mode": "cover_after_exif_normalize",
+    "fallback_background": "soft_dark_navy_blur",
+    "safe_zone": {
+      "top_percent": 12,
+      "bottom_percent": 14,
+      "left_percent": 8,
+      "right_percent": 8
+    },
+    "fonts": {
+      "headline": "Cafe24Moyamoya-Regular-v1.0",
+      "body": "Cafe24Ohsquare-v2.0"
+    },
+    "colors": {
+      "primary_highlight": "#FFEE59",
+      "primary_text": "#FFFFFF",
+      "stroke": "#07111D",
+      "panel": "rgba(5,17,34,0.72)",
+      "panel_soft": "rgba(5,17,34,0.52)",
+      "accent_teal": "#0B5E5B"
+    },
+    "overlay_style_defaults": {
+      "headline_font_size": 62,
+      "body_font_size": 34,
+      "stroke_width": 3,
+      "background_padding": 20,
+      "background_radius": 18
+    }
+  },
+  "slides": [
+    {
+      "order": 1,
+      "source_file": "KakaoTalk_20260327_121540482.jpg",
+      "role": "cover",
+      "crop_anchor": "center",
+      "image_note": "2인 동시 시술 컷, 첫 장 훅에 적합",
+      "headline": "필리핀에서 미리 예약하고\n찾아온 부산 헤드스파",
+      "subheadline": "부산 서면 | 시선을 즐기다 head spa",
+      "overlay_position": "top_center",
+      "overlay_variant": "headline_strong",
+      "text_style": {
+        "headline_font": "Cafe24Moyamoya-Regular-v1.0",
+        "headline_font_size": 62,
+        "headline_color": "#FFEE59",
+        "subheadline_font": "Cafe24Ohsquare-v2.0",
+        "subheadline_font_size": 26,
+        "subheadline_color": "#FFFFFF",
+        "background": "rgba(5,17,34,0.72)"
+      }
+    },
+    {
+      "order": 2,
+      "source_file": "KakaoTalk_20260327_121540482_01.jpg",
+      "role": "context",
+      "crop_anchor": "center_right",
+      "image_note": "편안하게 시술받는 컷",
+      "headline": "부산 오기 전부터\n미리 예약하고 방문",
+      "subheadline": "외국인 고객도 많이 찾는 head spa",
+      "overlay_position": "bottom_center",
+      "overlay_variant": "info_clean",
+      "text_style": {
+        "headline_font": "Cafe24Ohsquare-v2.0",
+        "headline_font_size": 50,
+        "headline_color": "#FFFFFF",
+        "subheadline_font": "Cafe24Ohsquare-v2.0",
+        "subheadline_font_size": 26,
+        "subheadline_color": "#FFEE59",
+        "background": "rgba(5,17,34,0.58)"
+      }
+    },
+    {
+      "order": 3,
+      "source_file": "KakaoTalk_20260327_121540482_02.jpg",
+      "role": "social_proof",
+      "crop_anchor": "center",
+      "image_note": "시술 집중 컷, 후기형 카피에 적합",
+      "headline": "\"K 뷰티는 최고다\"",
+      "subheadline": "필리핀 손님 리얼 반응",
+      "overlay_position": "center_left",
+      "overlay_variant": "quote_emphasis",
+      "text_style": {
+        "headline_font": "Cafe24Ohsquare-v2.0",
+        "headline_font_size": 58,
+        "headline_color": "#FFEE59",
+        "subheadline_font": "Cafe24Ohsquare-v2.0",
+        "subheadline_font_size": 28,
+        "subheadline_color": "#FFFFFF",
+        "background": "rgba(35,14,58,0.30)"
+      }
+    },
+    {
+      "order": 4,
+      "source_file": "KakaoTalk_20260327_121540482_03.jpg",
+      "role": "service_point",
+      "crop_anchor": "center",
+      "image_note": "LED 장비와 시술 분위기가 드러나는 컷",
+      "headline": "LED 헤드스파 + 두피 케어",
+      "subheadline": "두피 상태에 맞춘 맞춤 코스로 진행",
+      "overlay_position": "bottom_left",
+      "overlay_variant": "feature",
+      "text_style": {
+        "headline_font": "Cafe24Ohsquare-v2.0",
+        "headline_font_size": 48,
+        "headline_color": "#FFFFFF",
+        "subheadline_font": "Cafe24Ohsquare-v2.0",
+        "subheadline_font_size": 26,
+        "subheadline_color": "#FFEE59",
+        "background": "rgba(5,17,34,0.60)"
+      }
+    },
+    {
+      "order": 5,
+      "source_file": "KakaoTalk_20260327_121540482_04.jpg",
+      "role": "cta",
+      "crop_anchor": "center",
+      "image_note": "거울 컷, 마무리 CTA에 적합",
+      "headline": "서면 점포카페거리\n시선을 즐기다 head spa",
+      "subheadline": "부산 여행 중 들르기 좋은 위치 · 예약 문의 DM",
+      "overlay_position": "bottom_center",
+      "overlay_variant": "cta_location",
+      "text_style": {
+        "headline_font": "Cafe24Ohsquare-v2.0",
+        "headline_font_size": 50,
+        "headline_color": "#FFFFFF",
+        "subheadline_font": "Cafe24Ohsquare-v2.0",
+        "subheadline_font_size": 24,
+        "subheadline_color": "#B9FFF2",
+        "background": "rgba(7,62,56,0.64)"
+      }
+    }
+  ],
+  "caption": {
+    "primary": "필리핀에서 부산 여행 오기 전 미리 예약하고 방문한 head spa ✈️🇰🇷\n외국인 고객분들도 \"K 뷰티는 최고다\", \"너무 시원하다\"는 반응을 많이 남겨주셨어요.\n\n여행 전에 미리 예약하고 편하게 방문할 수 있는 부산 서면 head spa를 찾고 있다면 저장해두세요.\n\n📍 부산 서면 점포카페거리\n시선을 즐기다 head spa",
+    "cta": "저장해두고 부산 여행 일정에 넣어보세요."
+  },
+  "hashtags": [
+    "#서면헤드스파",
+    "#부산헤드스파",
+    "#헤드스파",
+    "#부산여행",
+    "#K뷰티",
+    "#두피케어",
+    "#서면카페거리",
+    "#외국인반응",
+    "#시선을즐기다",
+    "#부산관광",
+    "#부산스파",
+    "#서면데이트"
+  ],
+  "carousel_notes": {
+    "recommended_post_order": [1, 2, 3, 4, 5],
+    "cover_priority": "1장 커버에서 예약/외국인/부산 키워드가 바로 보여야 함",
+    "copy_density": "한 장당 메인 메시지 1개, 보조 메시지 1개로 제한",
+    "brand_consistency": "훅과 강조 키워드는 #FFEE59 유지",
+    "execution_goal": "사진 5장을 하나의 인스타 캐러셀 세트로 제작"
+  },
+  "rendering_notes": {
+    "output_format": "jpg",
+    "jpeg_quality": 92,
+    "sharpen_after_resize": true,
+    "text_safe_zone_note": "인스타 피드 UI 겹침을 피하기 위해 하단 과밀 배치 금지",
+    "caption_file_name": "instagram_carousel_caption.txt",
+    "hashtags_join_style": "space_separated_single_line"
+  }
+}

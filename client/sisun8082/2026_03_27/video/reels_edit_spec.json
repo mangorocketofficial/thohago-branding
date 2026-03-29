@@ -1,0 +1,183 @@
+{
+  "version": "1.0",
+  "type": "reels_edit_spec",
+  "created_at": "2026-03-27",
+
+  "source": {
+    "file": "KakaoTalk_20260327_121601750.mp4",
+    "duration_sec": 13.3,
+    "orientation": "vertical",
+    "resolution": "1080x1920",
+    "has_audio": true,
+    "audio_usable": false,
+    "audio_note": "현장 소음, 뮤트 후 BGM 교체 권장"
+  },
+
+  "video_analysis": {
+    "scene_type": "single_take_slow_pan",
+    "camera_movement": "wide_to_closeup",
+    "subject": "헤드스파 시술 중인 고객 1명 (필리핀 관광객)",
+    "key_visual_elements": [
+      "LED 수조 (블루→화이트→그린 컬러 체인지)",
+      "골드 아크 (두피 스티머)",
+      "캔들 4개 (따뜻한 앰비언스)",
+      "몬스테라 식물 + 핑크 팜파스",
+      "컬러풀 아이마스크",
+      "시선을 즐기다 head spa 로고 케이프"
+    ],
+    "mood": "몽환적, 힐링, 프리미엄",
+    "lighting": "어두운 환경 + LED 수조 발광이 주광원",
+    "color_transitions": [
+      { "time": "0.0-4.0", "color": "blue" },
+      { "time": "4.0-8.0", "color": "white_purple" },
+      { "time": "8.0-13.3", "color": "green" }
+    ]
+  },
+
+  "content_source": {
+    "origin": "사장님 인터뷰 3턴",
+    "main_angle": "필리핀에서 5명이 한국 오기 전부터 예약하고 찾아온 헤드스파",
+    "key_phrases": [
+      "필리핀에서 부산 관광 오면서 미리 예약",
+      "K-뷰티는 최고다",
+      "한국 미용기술이 뛰어나다",
+      "너무 시원했다, 너무 좋았다",
+      "두피검사 후 맞춤 코스 추천",
+      "서면 점포카페거리"
+    ]
+  },
+
+  "edit_spec": {
+    "total_duration_sec": 13.3,
+    "trim": null,
+    "speed": 1.0,
+
+    "audio": {
+      "original_audio": "mute",
+      "bgm": {
+        "mood": "lo-fi_chill_ambient",
+        "tempo": "slow",
+        "examples": ["lo-fi spa beats", "ambient piano", "soft electronic"],
+        "volume": 0.6,
+        "fade_in_sec": 1.0,
+        "fade_out_sec": 2.0
+      }
+    },
+
+    "text_overlays": [
+      {
+        "id": "hook",
+        "text": "부산 오기 전\n필리핀에서 미리 예약한\n헤드스파",
+        "start_sec": 0.0,
+        "end_sec": 4.0,
+        "position": "top_center",
+        "y_offset_percent": 15,
+        "style": {
+          "font": "Cafe24Moyamoya-Regular-v1.0",
+          "font_size": 56,
+          "color": "#FFEE59",
+          "stroke_color": "#07111D",
+          "stroke_width": 3,
+          "background": "rgba(5,17,34,0.72)",
+          "background_padding": 22,
+          "background_radius": 16
+        },
+        "animation": {
+          "enter": "fade_up",
+          "enter_duration_sec": 0.4,
+          "exit": "fade_out",
+          "exit_duration_sec": 0.3
+        },
+        "purpose": "후킹 — 스크롤 멈추게 하는 첫 문장"
+      },
+      {
+        "id": "reaction",
+        "text": "\"K 뷰티는 최고다\"\nby 필리핀 손님",
+        "start_sec": 4.5,
+        "end_sec": 8.0,
+        "position": "center",
+        "y_offset_percent": 60,
+        "style": {
+          "font": "Cafe24Ohsquare-v2.0",
+          "font_size": 46,
+          "line_font_sizes": [56, 26],
+          "color": "#FFEE59",
+          "stroke_color": "#221133",
+          "stroke_width": 2.5,
+          "background": "rgba(35,14,58,0.25)",
+          "background_padding": 12,
+          "background_radius": 12
+        },
+        "animation": {
+          "enter": "typewriter",
+          "enter_duration_sec": 0.6,
+          "exit": "fade_out",
+          "exit_duration_sec": 0.3
+        },
+        "purpose": "감정 피크 — LED 색 전환과 동기화"
+      },
+      {
+        "id": "location_cta",
+        "text": "서면 점포카페거리\n시선을 즐기다 head spa 💆",
+        "start_sec": 9.0,
+        "end_sec": 13.3,
+        "position": "bottom_center",
+        "y_offset_percent": 78,
+        "style": {
+          "font": "Cafe24Ohsquare-v2.0",
+          "font_size": 42,
+          "color": "#B9FFF2",
+          "stroke_color": "#062E2B",
+          "stroke_width": 2,
+          "background": "rgba(7,62,56,0.62)",
+          "background_padding": 14,
+          "background_radius": 12
+        },
+        "animation": {
+          "enter": "slide_up",
+          "enter_duration_sec": 0.4,
+          "exit": "none"
+        },
+        "purpose": "CTA — 매장 정보, 영상 끝까지 남아있음"
+      }
+    ],
+
+    "effects": [
+      {
+        "type": "color_grade",
+        "preset": "warm_lift",
+        "intensity": 0.3,
+        "note": "LED 색감을 살리되 전체적으로 약간 따뜻하게"
+      },
+      {
+        "type": "vignette",
+        "intensity": 0.2,
+        "note": "가장자리 약간 어둡게 — 집중감 강화"
+      },
+      {
+        "type": "fade_in",
+        "duration_sec": 0.8,
+        "from": "black"
+      },
+      {
+        "type": "fade_out",
+        "duration_sec": 1.5,
+        "to": "black",
+        "note": "마지막 CTA 텍스트가 보이는 상태에서 서서히 페이드"
+      }
+    ],
+
+    "caption": {
+      "text": "필리핀에서 부산 여행 오면서 미리 예약하고 찾아온 헤드스파 🇵🇭✈️🇰🇷\n한류 열풍 타고 K-뷰티 체험하러 오신 5분, \"너무 시원하다\" 연발 😆\n\n📍 서면 점포카페거리 시선을 즐기다\n\n#서면헤드스파 #부산헤드스파 #헤드스파 #부산여행 #K뷰티 #두피케어 #헤드스파추천 #서면카페거리 #외국인반응 #시선을즐기다 #부산관광 #헤드스파릴스",
+      "platform": "instagram_reels"
+    }
+  },
+
+  "rendering_notes": {
+    "text_safe_zone": "인스타 릴스 UI 요소 고려 — 상단 15%, 하단 20%, 우측 15% 는 아이콘 겹침 가능",
+    "aspect_ratio": "9:16 (원본 그대로 사용)",
+    "export_codec": "h264",
+    "export_bitrate": "8M",
+    "export_fps": 30
+  }
+}

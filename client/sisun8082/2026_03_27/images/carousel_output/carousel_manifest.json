@@ -1,0 +1,41 @@
+{
+  "set_name": "philippines_head_spa_carousel",
+  "output_dir": "C:\\Users\\User\\Desktop\\Thohago_branding\\client\\sisun8082\\2026_03_27\\images\\carousel_output",
+  "slides": [
+    {
+      "order": 1,
+      "source_file": "KakaoTalk_20260327_121540482.jpg",
+      "output_file": "slide_01_KakaoTalk_20260327_121540482.jpg",
+      "headline": "필리핀에서 미리 예약하고\n찾아온 부산 헤드스파",
+      "subheadline": "부산 서면 | 시선을 즐기다 head spa"
+    },
+    {
+      "order": 2,
+      "source_file": "KakaoTalk_20260327_121540482_01.jpg",
+      "output_file": "slide_02_KakaoTalk_20260327_121540482_01.jpg",
+      "headline": "부산 오기 전부터\n미리 예약하고 방문",
+      "subheadline": "외국인 고객도 많이 찾는 head spa"
+    },
+    {
+      "order": 3,
+      "source_file": "KakaoTalk_20260327_121540482_02.jpg",
+      "output_file": "slide_03_KakaoTalk_20260327_121540482_02.jpg",
+      "headline": "\"K 뷰티는 최고다\"",
+      "subheadline": "필리핀 손님 리얼 반응"
+    },
+    {
+      "order": 4,
+      "source_file": "KakaoTalk_20260327_121540482_03.jpg",
+      "output_file": "slide_04_KakaoTalk_20260327_121540482_03.jpg",
+      "headline": "LED 헤드스파 + 두피 케어",
+      "subheadline": "두피 상태에 맞춘 맞춤 코스로 진행"
+    },
+    {
+      "order": 5,
+      "source_file": "KakaoTalk_20260327_121540482_04.jpg",
+      "output_file": "slide_05_KakaoTalk_20260327_121540482_04.jpg",
+      "headline": "서면 점포카페거리\n시선을 즐기다 head spa",
+      "subheadline": "부산 여행 중 들르기 좋은 위치 · 예약 문의 DM"
+    }
+  ]
+}

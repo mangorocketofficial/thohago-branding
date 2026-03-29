@@ -1,0 +1,389 @@
+{
+  "version": "1.0",
+  "type": "reels_cut_edit_spec",
+  "created_at": "2026-03-28",
+  "project": "시선을즐기다_headspa_filipino_tourists",
+
+  "output": {
+    "filename": "headspa_reels_21s.mp4",
+    "resolution": "1080x1920",
+    "aspect_ratio": "9:16",
+    "fps": 30,
+    "codec": "h264",
+    "bitrate": "8M",
+    "total_duration_sec": 21.0
+  },
+
+  "narrative": {
+    "main_angle": "필리핀에서 부산 관광 오면서 한국 오기 전부터 예약하고 찾아온 5인 헤드스파",
+    "story_arc": "첫 만남 → 단체 도착 → 동시 시술 → 집중 케어 → 무드 절정 → 릴렉스 마무리",
+    "target_audience": "한국인 (외국인 스토리로 사회적 증거 구축)",
+    "tone": "프리미엄 힐링, 몽환적 분위기"
+  },
+
+  "sources": {
+    "photos": [
+      {
+        "id": "photo1",
+        "file": "KakaoTalk_20260327_121540482.jpg",
+        "resolution": "1500x2000",
+        "orientation": "vertical",
+        "description": "2인 동시 시술 장면. 나란히 누워 아이마스크 착용, 스팀캡, 타조깃털 장식 사이 배치. 시선을즐기다 로고 담요 덮음."
+      },
+      {
+        "id": "photo2",
+        "file": "KakaoTalk_20260327_121540482_01.jpg",
+        "resolution": "1500x2000",
+        "orientation": "vertical",
+        "description": "시술 마무리 릴렉스 상태. 파란 아이마스크 착용, 스팀캡 위 시술대에 편안히 누운 모습. 타조깃털과 골드 파이프 장식."
+      },
+      {
+        "id": "photo3",
+        "file": "KakaoTalk_20260327_121540482_02.jpg",
+        "resolution": "1500x2000",
+        "orientation": "vertical",
+        "description": "캔들 옆 두피 집중 케어 클로즈업. 흰색 아이패치, 골드 아크 스티머, 캔들 2개 불빛. 시선을즐기다 로고 담요."
+      },
+      {
+        "id": "photo4",
+        "file": "KakaoTalk_20260327_121540482_03.jpg",
+        "resolution": "1500x2000",
+        "orientation": "vertical",
+        "description": "LED 돔 테라피 시술 장면. 투명 LED 돔 아래 누운 고객, 컬러풀 아이마스크. 캔들, 몬스테라 식물, 핑크 팜파스 배경."
+      },
+      {
+        "id": "photo5",
+        "file": "KakaoTalk_20260327_121540482_04.jpg",
+        "resolution": "1500x2000",
+        "orientation": "vertical",
+        "description": "거울 앞 상담 장면. 사장님이 고객 뒤에서 두피 상태 확인 중. 마블 데스크 위 모로칸 헤어오일, 전문 두피 케어 제품 진열. 거울에 시선을즐기다 헤드스파 로고."
+      }
+    ],
+    "videos": [
+      {
+        "id": "video1",
+        "file": "KakaoTalk_20260327_121601750.mp4",
+        "resolution": "1080x1920",
+        "orientation": "vertical",
+        "duration_sec": 13.3,
+        "description": "LED 수조 위 시술 무드샷. 카메라가 와이드에서 클로즈업으로 천천히 패닝. LED 색상이 블루→화이트→그린으로 전환. 캔들, 몬스테라, 핑크 팜파스 배경. 고객 완전 릴렉스 상태.",
+        "has_audio": true,
+        "audio_usable": false,
+        "audio_note": "현장 소음, 뮤트 처리"
+      },
+      {
+        "id": "video2",
+        "file": "KakaoTalk_20260327_121623480.mp4",
+        "resolution": "1920x1080",
+        "orientation": "horizontal",
+        "duration_sec": 7.0,
+        "description": "프론트 데스크 단체 상담 장면. 필리핀 관광객 여러 명이 의자에 앉아 사장님과 대화. 모니터에 REVIEW 페이지 표시. 일상적 방문 기록 영상.",
+        "has_audio": true,
+        "audio_usable": false,
+        "audio_note": "대화 소리 있으나 명확하지 않음, 뮤트 처리"
+      }
+    ]
+  },
+
+  "cuts": [
+    {
+      "cut_number": 1,
+      "label": "hook — 첫 만남",
+      "source_id": "photo5",
+      "source_type": "photo",
+      "start_sec": 0.0,
+      "end_sec": 3.0,
+      "duration_sec": 3.0,
+      "narrative_role": "첫 화면. 거울 앞 상담 장면으로 시작해 '이 사람은 누구지?' 궁금증 유발. 후킹 텍스트와 동시 노출.",
+      "processing": {
+        "method": "ken_burns",
+        "effect": "zoom_in",
+        "zoom_start": 1.0,
+        "zoom_end": 1.08,
+        "pan_direction": "center",
+        "description": "천천히 줌인하며 거울 속 고객과 사장님에게 집중"
+      },
+      "crop": {
+        "input_resolution": "1500x2000",
+        "output_resolution": "1080x1920",
+        "method": "center_crop_after_scale",
+        "scale_first": "1200x2134"
+      }
+    },
+    {
+      "cut_number": 2,
+      "label": "arrival — 단체 방문",
+      "source_id": "video2",
+      "source_type": "video",
+      "start_sec": 3.0,
+      "end_sec": 7.0,
+      "duration_sec": 4.0,
+      "source_trim": {
+        "trim_start_sec": 0.0,
+        "trim_end_sec": 4.0
+      },
+      "narrative_role": "필리핀 관광객 단체가 매장에 도착한 장면. 여러 명이 모여 상담하는 모습으로 '5명이 동시에 왔다'는 스토리를 시각적으로 증명.",
+      "processing": {
+        "method": "horizontal_to_vertical",
+        "background": "blur_of_original",
+        "blur_sigma": 40,
+        "brightness_adjust": -0.1,
+        "foreground_position": "center",
+        "description": "원본 가로 영상을 확대+블러 처리한 배경 위에 원본을 센터 오버레이. 레터박스 대신 블러 배경으로 세로 프레임 채움."
+      }
+    },
+    {
+      "cut_number": 3,
+      "label": "group care — 동시 시술",
+      "source_id": "photo1",
+      "source_type": "photo",
+      "start_sec": 7.0,
+      "end_sec": 10.0,
+      "duration_sec": 3.0,
+      "narrative_role": "2인 동시 시술 장면. 나란히 누워 케어받는 모습으로 '1~5명 동시 케어 가능'이라는 차별점을 비주얼로 전달.",
+      "processing": {
+        "method": "ken_burns",
+        "effect": "pan_down",
+        "zoom_fixed": 1.05,
+        "pan_start_y": "center",
+        "pan_end_y": "lower",
+        "pan_speed": 0.5,
+        "description": "살짝 줌인 상태에서 아래로 천천히 패닝. 아이마스크에서 시작해 타조깃털 장식까지 훑어보는 느낌."
+      },
+      "crop": {
+        "input_resolution": "1500x2000",
+        "output_resolution": "1080x1920",
+        "method": "center_crop_after_scale",
+        "scale_first": "1200x2134"
+      }
+    },
+    {
+      "cut_number": 4,
+      "label": "close up — 캔들 집중 케어",
+      "source_id": "photo3",
+      "source_type": "photo",
+      "start_sec": 10.0,
+      "end_sec": 12.5,
+      "duration_sec": 2.5,
+      "narrative_role": "캔들 불빛 아래 두피 케어 클로즈업. 프리미엄 분위기를 극대화하는 구간. 'K-뷰티는 최고다' 텍스트와 함께 노출.",
+      "processing": {
+        "method": "ken_burns",
+        "effect": "zoom_in_slow",
+        "zoom_start": 1.0,
+        "zoom_end": 1.1,
+        "pan_direction": "center",
+        "description": "캔들과 골드 아크 스티머에 천천히 접근하며 집중감 강화"
+      },
+      "crop": {
+        "input_resolution": "1500x2000",
+        "output_resolution": "1080x1920",
+        "method": "center_crop_after_scale",
+        "scale_first": "1200x2134"
+      }
+    },
+    {
+      "cut_number": 5,
+      "label": "mood peak — LED 무드 절정",
+      "source_id": "video1",
+      "source_type": "video",
+      "start_sec": 12.5,
+      "end_sec": 18.5,
+      "duration_sec": 6.0,
+      "source_trim": {
+        "trim_start_sec": 0.0,
+        "trim_end_sec": 6.0
+      },
+      "narrative_role": "LED 수조의 컬러 체인지(블루→화이트)가 만드는 몽환적 분위기. 영상 소재의 가장 비주얼이 강한 구간. 가장 길게 배치해 분위기에 빠지게 함.",
+      "processing": {
+        "method": "direct_use",
+        "scale": "fit_to_1080x1920",
+        "pad_if_needed": true,
+        "description": "세로 영상 원본 그대로 사용. 해상도 맞춤만 처리."
+      }
+    },
+    {
+      "cut_number": 6,
+      "label": "end card — LED 마무리",
+      "source_id": "photo4",
+      "source_type": "photo",
+      "start_sec": 18.5,
+      "end_sec": 21.0,
+      "duration_sec": 2.5,
+      "narrative_role": "LED 테라피 컷으로 마무리. CTA 텍스트와 함께 차분한 여운을 남기고 페이드 아웃으로 마감.",
+      "processing": {
+        "method": "ken_burns",
+        "effect": "zoom_out",
+        "zoom_start": 1.1,
+        "zoom_end": 1.0,
+        "pan_direction": "center",
+        "description": "줌아웃으로 시야가 넓어지며 마무리 여운. 편안한 릴렉스 상태를 보여주며 끝."
+      },
+      "crop": {
+        "input_resolution": "1500x2000",
+        "output_resolution": "1080x1920",
+        "method": "center_crop_after_scale",
+        "scale_first": "1200x2134"
+      }
+    }
+  ],
+
+  "text_overlays": [
+    {
+      "id": "hook",
+      "text_line_1": "필리핀에서 5명이",
+      "text_line_2": "예약하고 찾아온 헤드스파",
+      "start_sec": 0.3,
+      "end_sec": 3.8,
+      "appears_during_cut": 1,
+      "purpose": "후킹 — 스크롤 멈추게 하는 첫 문장. '외국에서 예약까지 하고 찾아온' 의외성으로 주목.",
+      "position": {
+        "anchor": "top_center",
+        "line_1_y_percent": 12,
+        "line_2_y_percent": 15,
+        "line_gap_px": 60
+      },
+      "style": {
+        "line_1": {
+          "font": "Cafe24Dangdanghae-v2.0",
+          "font_size": 52,
+          "font_weight": "bold",
+          "color": "#FFEE59",
+          "stroke_color": "#000000",
+          "stroke_width": 3
+        },
+        "line_2": {
+          "font": "Cafe24Dangdanghae-v2.0",
+          "font_size": 44,
+          "font_weight": "bold",
+          "color": "#FFEE59",
+          "stroke_color": "#000000",
+          "stroke_width": 3
+        }
+      },
+      "animation": {
+        "line_1_fade_in_start": 0.3,
+        "line_1_fade_in_end": 0.7,
+        "line_2_fade_in_start": 0.5,
+        "line_2_fade_in_end": 0.9,
+        "fade_out_start": 3.4,
+        "fade_out_end": 3.8,
+        "type": "fade_in_up_staggered"
+      }
+    },
+    {
+      "id": "reaction",
+      "text_line_1": "K-뷰티는 최고다",
+      "start_sec": 10.0,
+      "end_sec": 13.0,
+      "appears_during_cut": 4,
+      "purpose": "감정 피크 — 외국인 고객의 실제 반응 인용. 캔들 클로즈업 위에 겹쳐 프리미엄 느낌 강조.",
+      "position": {
+        "anchor": "center",
+        "y_percent": 55
+      },
+      "style": {
+        "line_1": {
+          "font_size": 48,
+          "font_weight": "bold",
+          "color": "#FFFFFF",
+          "stroke_color": "#000000",
+          "stroke_width": 3
+        }
+      },
+      "animation": {
+        "fade_in_start": 10.0,
+        "fade_in_end": 10.4,
+        "fade_out_start": 12.6,
+        "fade_out_end": 13.0,
+        "type": "fade_in_out"
+      }
+    },
+    {
+      "id": "cta",
+      "text_line_1": "서면 점포카페거리",
+      "text_line_2": "시선을 즐기다 head spa",
+      "start_sec": 16.0,
+      "end_sec": 21.0,
+      "appears_during_cut": [5, 6],
+      "purpose": "CTA — 매장 위치와 이름. 영상 끝까지 남아있으면서 자연스러운 페이드아웃과 함께 마감.",
+      "position": {
+        "anchor": "bottom_center",
+        "line_1_y_percent": 75,
+        "line_2_y_percent": 78,
+        "line_gap_px": 50
+      },
+      "style": {
+        "line_1": {
+          "font_size": 40,
+          "font_weight": "bold",
+          "color": "#FFFFFF",
+          "stroke_color": "#000000",
+          "stroke_width": 2
+        },
+        "line_2": {
+          "font_size": 36,
+          "font_weight": "bold",
+          "color": "#FFFFFF",
+          "stroke_color": "#000000",
+          "stroke_width": 2
+        }
+      },
+      "animation": {
+        "line_1_fade_in_start": 16.0,
+        "line_1_fade_in_end": 16.5,
+        "line_2_fade_in_start": 16.3,
+        "line_2_fade_in_end": 16.8,
+        "fade_out": "none — rides the global fade out",
+        "type": "slide_up_staggered"
+      }
+    }
+  ],
+
+  "global_effects": {
+    "fade_in": {
+      "type": "from_black",
+      "duration_sec": 0.8,
+      "start_sec": 0.0
+    },
+    "fade_out": {
+      "type": "to_black",
+      "duration_sec": 1.5,
+      "start_sec": 19.5
+    }
+  },
+
+  "audio": {
+    "original_audio": "mute_all",
+    "mute_reason": "모든 소스의 원본 오디오가 현장 소음이라 사용 불가",
+    "bgm": {
+      "required": true,
+      "mood": "lo-fi chill ambient",
+      "tempo": "60-80 BPM",
+      "style_references": ["lo-fi spa beats", "ambient piano", "soft electronic"],
+      "volume": 0.6,
+      "fade_in_sec": 1.0,
+      "fade_out_sec": 2.0,
+      "license": "royalty-free required",
+      "note": "별도 음원 파일 필요. 프로덕션에서 저작권 없는 lo-fi 트랙 적용."
+    }
+  },
+
+  "instagram_reels_safe_zone": {
+    "top_avoid_percent": 15,
+    "bottom_avoid_percent": 20,
+    "right_avoid_percent": 15,
+    "note": "인스타 릴스 UI 요소(프로필, 좋아요/댓글/공유 버튼, 캡션 영역) 겹침 방지. 텍스트 오버레이는 이 영역을 피해 배치."
+  },
+
+  "caption": {
+    "platform": "instagram_reels",
+    "text": "필리핀에서 부산 여행 오면서 미리 예약하고 찾아온 헤드스파 🇵🇭✈️🇰🇷\n한류 열풍 타고 K-뷰티 체험하러 오신 5분, \"너무 시원하다\" 연발 😆\n\n📍 서면 점포카페거리 시선을 즐기다\n\n#서면헤드스파 #부산헤드스파 #헤드스파 #부산여행 #K뷰티 #두피케어 #헤드스파추천 #서면카페거리 #외국인반응 #시선을즐기다 #부산관광 #헤드스파릴스"
+  },
+
+  "production_notes": {
+    "font": "현재 빌드에서 NotoSansCJK-Thin 사용됨. 프로덕션에서는 Pretendard-Bold 또는 SpoqaHanSansNeo-Bold로 교체 필요.",
+    "text_readability": "볼드 폰트 교체 시 stroke_width를 2로 줄여도 충분히 가독성 확보됨.",
+    "color_grade": "현재 미적용. 프로덕션에서 warm_lift 컬러 그레이드 + vignette 0.2 추가 권장.",
+    "transition": "현재 하드컷. 프로덕션에서 컷 전환 시 0.3s crossfade 또는 0.2s dip-to-black 추가 가능."
+  }
+}
