@@ -1,0 +1,28 @@
+{
+  "stickers": [
+    {
+      "photo_id": "photo_01",
+      "emoji": "✨",
+      "x": 200,
+      "y": 350,
+      "size": 60,
+      "reason": "스파 트리트먼트의 특별함 표현"
+    },
+    {
+      "photo_id": "photo_03",
+      "emoji": "😴",
+      "x": 200,
+      "y": 300,
+      "size": 80,
+      "reason": "편안하게 휴식 취하는 모습 강조"
+    },
+    {
+      "photo_id": "photo_05",
+      "emoji": "⭐",
+      "x": 850,
+      "y": 350,
+      "size": 60,
+      "reason": "프리미엄 서비스 품질 강조"
+    }
+  ]
+}

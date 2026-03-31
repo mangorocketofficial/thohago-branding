@@ -1,0 +1,234 @@
+{
+  "version": "1.0",
+  "source": {
+    "shop_id": "sisun8082",
+    "session_id": "2026_03_27",
+    "beat_sheet_id": "beat_sheet_001",
+    "target_duration_sec": 24.0
+  },
+  "beats": [
+    {
+      "beat_id": "b01",
+      "name": "hook",
+      "emotion_role": "curiosity",
+      "goal": "필리핀에서 예약까지 하고 찾아온 맥락으로 스크롤 정지",
+      "message_focus": "필리핀 손님 5명이 한국 오기 전부터 예약",
+      "target_duration_sec": 3.0,
+      "voiceover_draft": "필리핀에서 온 다섯 분이 한국 오기 전부터 예약하고 찾아온 서면 헤드스파.",
+      "overlay_draft": ["필리핀 손님 5명이", "한국 오기 전부터 예약"],
+      "asset_allocations": [
+        {
+          "slot_id": "b01_s01",
+          "asset_id": "video_02",
+          "asset_type": "video",
+          "role": "primary",
+          "source_in_sec": 0.5,
+          "source_out_sec": 3.0,
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 2.5,
+          "processing": {
+            "method": "horizontal_to_vertical",
+            "framing": "center_group"
+          }
+        },
+        {
+          "slot_id": "b01_s02",
+          "asset_id": "photo_05",
+          "asset_type": "photo",
+          "role": "bridge",
+          "timeline_in_beat_sec": 2.5,
+          "timeline_out_beat_sec": 3.0,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_push_in",
+            "anchor": "center",
+            "scale_from": 1.0,
+            "scale_to": 1.04
+          }
+        }
+      ],
+      "timing_adjustment_note": "hook이 짧으면 photo_05 hold를 0.5~1.0초까지 늘린다"
+    },
+    {
+      "beat_id": "b02",
+      "name": "setup",
+      "emotion_role": "trust",
+      "goal": "두피 진단 기반 맞춤 코스라는 차별점 제시",
+      "message_focus": "두피 진단 후 맞춤 코스를 추천받는다",
+      "target_duration_sec": 4.5,
+      "voiceover_draft": "도착하자마자 두피 진단을 받고, 맞춤 코스를 추천받습니다.",
+      "overlay_draft": ["두피 진단 → 맞춤 코스 추천"],
+      "asset_allocations": [
+        {
+          "slot_id": "b02_s01",
+          "asset_id": "photo_02",
+          "asset_type": "photo",
+          "role": "primary",
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 2.2,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_push_in",
+            "anchor": "center",
+            "scale_from": 1.0,
+            "scale_to": 1.06
+          }
+        },
+        {
+          "slot_id": "b02_s02",
+          "asset_id": "video_01",
+          "asset_type": "video",
+          "role": "supporting",
+          "source_in_sec": 0.0,
+          "source_out_sec": 2.3,
+          "timeline_in_beat_sec": 2.2,
+          "timeline_out_beat_sec": 4.5,
+          "processing": {
+            "method": "native_vertical",
+            "framing": "center"
+          }
+        }
+      ]
+    },
+    {
+      "beat_id": "b03",
+      "name": "proof",
+      "emotion_role": "immersion",
+      "goal": "스팀캡·캔들·LED 돔 시술 과정으로 기술력 증명",
+      "message_focus": "스팀캡, 아로마 캔들, LED 테라피까지 이어지는 풀 케어",
+      "target_duration_sec": 6.5,
+      "voiceover_draft": "다섯 명이 함께 케어를 시작합니다. 캔들 향이 퍼지는 동안 두피 집중 케어가 이어지고, LED 테라피로 마무리.",
+      "overlay_draft": ["스팀캡 → 캔들 케어 → LED 테라피"],
+      "asset_allocations": [
+        {
+          "slot_id": "b03_s01",
+          "asset_id": "photo_01",
+          "asset_type": "photo",
+          "role": "primary",
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 2.2,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_zoom_out",
+            "anchor": "center",
+            "scale_from": 1.08,
+            "scale_to": 1.0
+          }
+        },
+        {
+          "slot_id": "b03_s02",
+          "asset_id": "photo_03",
+          "asset_type": "photo",
+          "role": "detail",
+          "timeline_in_beat_sec": 2.2,
+          "timeline_out_beat_sec": 4.4,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_push_in",
+            "anchor": "center",
+            "scale_from": 1.0,
+            "scale_to": 1.06
+          }
+        },
+        {
+          "slot_id": "b03_s03",
+          "asset_id": "photo_04",
+          "asset_type": "photo",
+          "role": "detail",
+          "timeline_in_beat_sec": 4.4,
+          "timeline_out_beat_sec": 6.5,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_push_in",
+            "anchor": "center",
+            "scale_from": 1.0,
+            "scale_to": 1.05
+          }
+        }
+      ]
+    },
+    {
+      "beat_id": "b04",
+      "name": "reaction",
+      "emotion_role": "delight",
+      "goal": "K-뷰티 최고라는 감정 피크 전달",
+      "message_focus": "K-뷰티는 최고다, 너무 시원하고 만족했다",
+      "target_duration_sec": 6.0,
+      "voiceover_draft": "K-뷰티 최고라는 말을 연발하시고, 다들 너무 시원하다, 만족했다고 하시죠.",
+      "overlay_draft": ["\"K-뷰티는 최고다\"", "\"너무 시원하고 만족했다\""],
+      "asset_allocations": [
+        {
+          "slot_id": "b04_s01",
+          "asset_id": "video_01",
+          "asset_type": "video",
+          "role": "primary",
+          "source_in_sec": 4.0,
+          "source_out_sec": 8.8,
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 4.8,
+          "processing": {
+            "method": "native_vertical",
+            "framing": "center"
+          }
+        },
+        {
+          "slot_id": "b04_s02",
+          "asset_id": "photo_05",
+          "asset_type": "photo",
+          "role": "bridge",
+          "timeline_in_beat_sec": 4.8,
+          "timeline_out_beat_sec": 6.0,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_push_in",
+            "anchor": "center",
+            "scale_from": 1.0,
+            "scale_to": 1.04
+          }
+        }
+      ],
+      "timing_adjustment_note": "video_01 트림 구간에서 고객 반응이 보이는 부분을 우선 선택"
+    },
+    {
+      "beat_id": "b05",
+      "name": "cta",
+      "emotion_role": "warmth",
+      "goal": "서면 관광 코스 안에서 쉬어갈 수 있는 곳으로 마무리",
+      "message_focus": "서면 여행 중 쉬어가기 좋은 헤드스파",
+      "target_duration_sec": 4.0,
+      "voiceover_draft": "여행 중 쉬어가고 싶은 곳, 시선을 즐기다에서 직접 느껴보세요.",
+      "overlay_draft": ["시선을 즐기다", "서면 헤드스파"],
+      "asset_allocations": [
+        {
+          "slot_id": "b05_s01",
+          "asset_id": "video_02",
+          "asset_type": "video",
+          "role": "primary",
+          "source_in_sec": 3.5,
+          "source_out_sec": 6.5,
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 3.0,
+          "processing": {
+            "method": "horizontal_to_vertical",
+            "framing": "center"
+          }
+        },
+        {
+          "slot_id": "b05_s02",
+          "asset_id": "photo_02",
+          "asset_type": "photo",
+          "role": "closing",
+          "timeline_in_beat_sec": 3.0,
+          "timeline_out_beat_sec": 4.0,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_zoom_out",
+            "anchor": "center",
+            "scale_from": 1.04,
+            "scale_to": 1.0
+          }
+        }
+      ]
+    }
+  ]
+}

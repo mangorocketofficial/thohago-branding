@@ -2,12 +2,19 @@
   "shops": [
     {
       "shop_id": "sisun8082",
-      "display_name": "Sisun8082 Head Spa",
+      "display_name": "시선을 즐기다",
       "invite_tokens": ["sisun8082-start"],
       "telegram_chat_ids": ["1000001"],
       "publish": {
         "provider": "mock_naver",
         "targets": ["naver_blog"]
+      },
+      "profile": {
+        "business_type": "헤드스파, 두피 관리 전문",
+        "location": "부산 서면 점포카페거리 한복판",
+        "key_services": ["두피검사 맞춤 코스", "LED 돔 시술", "아로마 캔들 케어", "스팀캡 관리"],
+        "booking_info": "여행 예약 사이트 등록, 방문 예약 가능",
+        "one_liner": "서면 핫플레이스에서 만나는 전문 헤드스파"
       },
       "media_hints": [
         "LED dome",
@@ -43,6 +50,37 @@
         "product shelf",
         "result shot"
       ],
+      "sample_sessions": {}
+    },
+    {
+      "shop_id": "uramachi_sakaba",
+      "display_name": "우라마치 사카바",
+      "invite_tokens": ["uramachi-start"],
+      "telegram_chat_ids": [],
+      "publish": {
+        "provider": "mock_naver",
+        "targets": ["naver_blog"]
+      },
+      "profile": {
+        "business_type": "일본식 이자카야",
+        "location": "",
+        "key_services": ["야끼소바", "기린 생맥주", "아게다시 도후"],
+        "booking_info": "",
+        "one_liner": "일본 현지 분위기의 편안한 이자카야"
+      },
+      "media_hints": [],
+      "sample_sessions": {}
+    },
+    {
+      "shop_id": "thohago_test",
+      "display_name": "Thohago Test",
+      "invite_tokens": ["thohago-test-start"],
+      "telegram_chat_ids": [],
+      "publish": {
+        "provider": "mock_naver",
+        "targets": ["naver_blog"]
+      },
+      "media_hints": [],
       "sample_sessions": {}
     }
   ]

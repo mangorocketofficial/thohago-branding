@@ -35,6 +35,7 @@ def load_shop_registry(registry_path: Path) -> dict[str, ShopConfig]:
                 targets=list(raw_shop.get("publish", {}).get("targets", ["naver_blog"])),
             ),
             media_hints=list(raw_shop.get("media_hints", [])),
+            profile=dict(raw_shop.get("profile", {})),
             sample_sessions=sample_sessions,
         )
     return shops

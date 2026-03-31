@@ -1,0 +1,265 @@
+{
+  "pipeline_mode": "source_first_v3",
+  "full_narrative": "필리핀에서 온 관광객 다섯 분이 한국 오기 전부터 미리 예약하고 부산 서면까지 찾아왔어요. 한류 열풍 덕에 한국식 헤드스파 두피관리를 너무 궁금해했거든요. 은박 스팀캡으로 5명이 동시에 받고, LED 돔까지 체험했어요. 시술 중에 'K-뷰티는 최고다, 너무 시원하다'며 계속 감탄했어요. 마지막에 헤어오일 바르며 거울 보는 모습이 너무 만족스러워 보였어요. 부산 서면 '시선을 즐기다'에서 특별한 추억을 만들어드렸죠.",
+  "total_duration_sec": 27.96,
+  "sentences": [
+    {
+      "index": 1,
+      "text": "필리핀에서 온 관광객 다섯 분이 한국 오기 전부터 미리 예약하고 부산 서면까지 찾아왔어요.",
+      "sources": [
+        "video_02"
+      ],
+      "tts_duration_sec": 5.76,
+      "start_sec": 0.0
+    },
+    {
+      "index": 2,
+      "text": "한류 열풍 덕에 한국식 헤드스파 두피관리를 너무 궁금해했거든요.",
+      "sources": [
+        "photo_01"
+      ],
+      "tts_duration_sec": 4.46,
+      "start_sec": 5.76
+    },
+    {
+      "index": 3,
+      "text": "은박 스팀캡으로 5명이 동시에 받고, LED 돔까지 체험했어요.",
+      "sources": [
+        "photo_01",
+        "photo_04"
+      ],
+      "tts_duration_sec": 4.66,
+      "start_sec": 10.22
+    },
+    {
+      "index": 4,
+      "text": "시술 중에 'K-뷰티는 최고다, 너무 시원하다'며 계속 감탄했어요.",
+      "sources": [
+        "photo_02",
+        "photo_03"
+      ],
+      "tts_duration_sec": 4.54,
+      "start_sec": 14.88
+    },
+    {
+      "index": 5,
+      "text": "마지막에 헤어오일 바르며 거울 보는 모습이 너무 만족스러워 보였어요.",
+      "sources": [
+        "photo_05"
+      ],
+      "tts_duration_sec": 4.46,
+      "start_sec": 19.42
+    },
+    {
+      "index": 6,
+      "text": "부산 서면 '시선을 즐기다'에서 특별한 추억을 만들어드렸죠.",
+      "sources": [
+        "video_01"
+      ],
+      "tts_duration_sec": 4.08,
+      "start_sec": 23.88
+    }
+  ],
+  "timeline": [
+    {
+      "clip_id": "c01",
+      "sentence_index": 1,
+      "asset_type": "video",
+      "asset_id": "video_02",
+      "start_sec": 0.0,
+      "end_sec": 5.76,
+      "duration_sec": 5.76,
+      "processing": {
+        "method": "near_vertical"
+      },
+      "source_in_sec": 0,
+      "source_out_sec": 5.76
+    },
+    {
+      "clip_id": "c02",
+      "sentence_index": 2,
+      "asset_type": "photo",
+      "asset_id": "photo_01",
+      "start_sec": 5.76,
+      "end_sec": 10.22,
+      "duration_sec": 4.46,
+      "processing": {
+        "method": "ken_burns",
+        "scale_from": 1.0,
+        "scale_to": 1.06
+      }
+    },
+    {
+      "clip_id": "c03",
+      "sentence_index": 3,
+      "asset_type": "photo",
+      "asset_id": "photo_01",
+      "start_sec": 10.22,
+      "end_sec": 12.55,
+      "duration_sec": 2.33,
+      "processing": {
+        "method": "ken_burns",
+        "scale_from": 1.0,
+        "scale_to": 1.06
+      }
+    },
+    {
+      "clip_id": "c04",
+      "sentence_index": 3,
+      "asset_type": "photo",
+      "asset_id": "photo_04",
+      "start_sec": 12.55,
+      "end_sec": 14.88,
+      "duration_sec": 2.33,
+      "processing": {
+        "method": "ken_burns",
+        "scale_from": 1.0,
+        "scale_to": 1.06
+      }
+    },
+    {
+      "clip_id": "c05",
+      "sentence_index": 4,
+      "asset_type": "photo",
+      "asset_id": "photo_02",
+      "start_sec": 14.88,
+      "end_sec": 17.15,
+      "duration_sec": 2.27,
+      "processing": {
+        "method": "ken_burns",
+        "scale_from": 1.0,
+        "scale_to": 1.06
+      }
+    },
+    {
+      "clip_id": "c06",
+      "sentence_index": 4,
+      "asset_type": "photo",
+      "asset_id": "photo_03",
+      "start_sec": 17.15,
+      "end_sec": 19.42,
+      "duration_sec": 2.27,
+      "processing": {
+        "method": "ken_burns",
+        "scale_from": 1.0,
+        "scale_to": 1.06
+      }
+    },
+    {
+      "clip_id": "c07",
+      "sentence_index": 5,
+      "asset_type": "photo",
+      "asset_id": "photo_05",
+      "start_sec": 19.42,
+      "end_sec": 23.88,
+      "duration_sec": 4.46,
+      "processing": {
+        "method": "ken_burns",
+        "scale_from": 1.0,
+        "scale_to": 1.06
+      }
+    },
+    {
+      "clip_id": "c08",
+      "sentence_index": 6,
+      "asset_type": "video",
+      "asset_id": "video_01",
+      "start_sec": 23.88,
+      "end_sec": 27.96,
+      "duration_sec": 4.08,
+      "processing": {
+        "method": "native_vertical"
+      },
+      "source_in_sec": 0,
+      "source_out_sec": 4.08
+    }
+  ],
+  "text_overlays": [
+    {
+      "text_id": "t01",
+      "text": "서면 헤드스파 전문샵\n시선을즐기다",
+      "start_sec": 0.2,
+      "end_sec": 4.61,
+      "kind": "hook",
+      "position": "center"
+    },
+    {
+      "text_id": "t02",
+      "text": "K-뷰티",
+      "start_sec": 5.96,
+      "end_sec": 9.33,
+      "kind": "supporting",
+      "position": "bottom_center"
+    },
+    {
+      "text_id": "t03",
+      "text": "전문시술",
+      "start_sec": 10.42,
+      "end_sec": 13.95,
+      "kind": "supporting",
+      "position": "bottom_center"
+    },
+    {
+      "text_id": "t04",
+      "text": "최고의 만족",
+      "start_sec": 15.08,
+      "end_sec": 18.51,
+      "kind": "supporting",
+      "position": "bottom_center"
+    },
+    {
+      "text_id": "t05",
+      "text": "완벽마무리",
+      "start_sec": 19.62,
+      "end_sec": 22.99,
+      "kind": "supporting",
+      "position": "bottom_center"
+    },
+    {
+      "text_id": "t06",
+      "text": "시선을 즐기다",
+      "start_sec": 24.08,
+      "end_sec": 27.14,
+      "kind": "cta",
+      "position": "bottom_center"
+    }
+  ],
+  "subtitles": [
+    {
+      "index": 1,
+      "text": "필리핀에서 온 관광객 다섯 분이 한국 오기 전부터 미리 예약하고 부산 서면까지 찾아왔어요.",
+      "start_sec": 0.0,
+      "end_sec": 5.76
+    },
+    {
+      "index": 2,
+      "text": "한류 열풍 덕에 한국식 헤드스파 두피관리를 너무 궁금해했거든요.",
+      "start_sec": 5.76,
+      "end_sec": 10.22
+    },
+    {
+      "index": 3,
+      "text": "은박 스팀캡으로 5명이 동시에 받고, LED 돔까지 체험했어요.",
+      "start_sec": 10.22,
+      "end_sec": 14.88
+    },
+    {
+      "index": 4,
+      "text": "시술 중에 'K-뷰티는 최고다, 너무 시원하다'며 계속 감탄했어요.",
+      "start_sec": 14.88,
+      "end_sec": 19.42
+    },
+    {
+      "index": 5,
+      "text": "마지막에 헤어오일 바르며 거울 보는 모습이 너무 만족스러워 보였어요.",
+      "start_sec": 19.42,
+      "end_sec": 23.88
+    },
+    {
+      "index": 6,
+      "text": "부산 서면 '시선을 즐기다'에서 특별한 추억을 만들어드렸죠.",
+      "start_sec": 23.88,
+      "end_sec": 27.96
+    }
+  ]
+}

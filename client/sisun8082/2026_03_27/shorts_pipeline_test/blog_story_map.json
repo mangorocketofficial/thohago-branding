@@ -1,0 +1,133 @@
+{
+  "version": "1.0",
+  "source": {
+    "shop_id": "sisun8082",
+    "session_id": "2026_03_27",
+    "content_bundle_id": "live_20260329T005645",
+    "blog_article_path": "runs/sisun8082/live_20260329T005645-20260329T005645Z/generated/naver_blog_article.md",
+    "photo_count": 5,
+    "video_count": 2
+  },
+  "summary": {
+    "main_angle": "필리핀 관광객 5명이 한국 오기 전부터 예약한 서면 헤드스파 경험",
+    "main_angle_strength": 0.95,
+    "primary_story_type": "tourist_group_experience",
+    "dominant_emotion": "curiosity",
+    "secondary_emotion": "delight",
+    "blog_structure_mode": "narrative_flow",
+    "compression_recommendation": "tourist_hook"
+  },
+  "story_units": [
+    {
+      "unit_id": "u01",
+      "type": "context",
+      "title": "해외에서 미리 예약하고 찾아온 단체 관광객",
+      "summary": "필리핀 관광객 5명이 여행 전 예약 사이트를 통해 미리 예약하고 방문했다",
+      "importance": 0.97,
+      "emotion_weight": 0.82,
+      "compression_priority": 0.98,
+      "blog_section_order": 1,
+      "photo_ids": ["photo_01", "photo_05"],
+      "video_ids": ["video_02"],
+      "content_roles": ["hook", "setup"],
+      "proof_strength": "medium",
+      "quote_candidates": [
+        "한국에 오기 전부터 예약을 하고 오십니다",
+        "필리핀에서 5명의 관광객이 우리샵에 방문해서 헤드스파 서비스를 받으셨어"
+      ]
+    },
+    {
+      "unit_id": "u02",
+      "type": "differentiator",
+      "title": "두피 진단 기반 맞춤 코스 추천",
+      "summary": "여러 코스 중 두피검사를 통해 개인에게 맞는 코스를 전문적으로 추천한다",
+      "importance": 0.89,
+      "emotion_weight": 0.55,
+      "compression_priority": 0.85,
+      "blog_section_order": 2,
+      "photo_ids": ["photo_02"],
+      "video_ids": ["video_01"],
+      "content_roles": ["setup", "proof"],
+      "proof_strength": "high",
+      "quote_candidates": [
+        "두피검사를 통해 본인한테 맞는 코스를 전문적으로 권유해드리고",
+        "다른 곳보다 좀 더 전문적인 관리를 받을 수 있습니다"
+      ]
+    },
+    {
+      "unit_id": "u03",
+      "type": "proof",
+      "title": "5명 동시 스팀캡 시술 장면",
+      "summary": "듀얼 샴푸대에서 스팀캡, 캔들, LED 돔을 사용한 본격 시술 과정",
+      "importance": 0.93,
+      "emotion_weight": 0.72,
+      "compression_priority": 0.94,
+      "blog_section_order": 3,
+      "photo_ids": ["photo_01", "photo_03", "photo_04"],
+      "video_ids": ["video_01"],
+      "content_roles": ["proof"],
+      "proof_strength": "high",
+      "quote_candidates": [
+        "스팀캡, LED, 캔들 향이 퍼지는 시술 과정"
+      ]
+    },
+    {
+      "unit_id": "u04",
+      "type": "reaction",
+      "title": "K-뷰티 최고라는 폭발적 만족 반응",
+      "summary": "외국인 고객들이 K-뷰티 최고, 시원하다, 만족한다는 큰 리액션을 보였다",
+      "importance": 0.96,
+      "emotion_weight": 0.98,
+      "compression_priority": 0.97,
+      "blog_section_order": 4,
+      "photo_ids": ["photo_03", "photo_05"],
+      "video_ids": ["video_02"],
+      "content_roles": ["reaction"],
+      "proof_strength": "medium",
+      "quote_candidates": [
+        "K-뷰티는 최고다",
+        "한국 사람들은 미용기술이 뛰어나다",
+        "굉장히 시원했다, 너무 좋았다, 만족했다",
+        "외국인분들의 리액션이 한국 사람들보다 매우 크기 때문에 시술하는 저희 입장에서도 기분이 정말 좋습니다"
+      ]
+    },
+    {
+      "unit_id": "u05",
+      "type": "location",
+      "title": "서면 핫플레이스 한복판 위치 장점",
+      "summary": "서면 카페거리 한복판에 위치해 헤드스파 후 쇼핑과 관광이 바로 가능하다",
+      "importance": 0.76,
+      "emotion_weight": 0.35,
+      "compression_priority": 0.65,
+      "blog_section_order": 5,
+      "photo_ids": [],
+      "video_ids": [],
+      "content_roles": ["cta"],
+      "proof_strength": "low",
+      "quote_candidates": [
+        "서면 점포카페 거리의 한복판에 위치",
+        "헤드스파 후에 쇼핑을 즐기시거나 유명한 관광명소로 이동하기에 지리적 위치가 매우 좋습니다"
+      ]
+    }
+  ],
+  "compression_hints": {
+    "must_keep_unit_ids": ["u01", "u03", "u04"],
+    "optional_unit_ids": ["u02", "u05"],
+    "drop_first_unit_ids": [],
+    "best_hook_unit_id": "u01",
+    "best_reaction_unit_id": "u04",
+    "best_proof_unit_id": "u03",
+    "recommended_editorial_patterns": [
+      "tourist_reaction",
+      "group_visit_story"
+    ]
+  },
+  "validation": {
+    "min_story_unit_count": 3,
+    "require_main_angle": true,
+    "require_hook_candidate": true,
+    "require_proof_candidate": true,
+    "require_reaction_candidate": true,
+    "forbid_empty_summary": true
+  }
+}

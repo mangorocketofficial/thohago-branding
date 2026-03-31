@@ -1,41 +1,41 @@
 {
-  "set_name": "philippines_head_spa_carousel",
+  "set_name": "sisun8082_carousel",
   "output_dir": "C:\\Users\\User\\Desktop\\Thohago_branding\\client\\sisun8082\\2026_03_27\\images\\carousel_output",
   "slides": [
     {
       "order": 1,
       "source_file": "KakaoTalk_20260327_121540482.jpg",
       "output_file": "slide_01_KakaoTalk_20260327_121540482.jpg",
-      "headline": "필리핀에서 미리 예약하고\n찾아온 부산 헤드스파",
-      "subheadline": "부산 서면 | 시선을 즐기다 head spa"
+      "headline": "한류 열풍으로 찾아온\n외국인들의 K-뷰티 체험",
+      "subheadline": "부산 서면 핫플레이스에서 만나는 한국식 헤드스파"
     },
     {
       "order": 2,
-      "source_file": "KakaoTalk_20260327_121540482_01.jpg",
-      "output_file": "slide_02_KakaoTalk_20260327_121540482_01.jpg",
-      "headline": "부산 오기 전부터\n미리 예약하고 방문",
-      "subheadline": "외국인 고객도 많이 찾는 head spa"
+      "source_file": "KakaoTalk_20260327_121540482_03.jpg",
+      "output_file": "slide_02_KakaoTalk_20260327_121540482_03.jpg",
+      "headline": "두피검사부터 시작하는\n전문적인 맞춤 관리",
+      "subheadline": "여러 코스 중 본인에게 딱 맞는 프로그램을 진단"
     },
     {
       "order": 3,
       "source_file": "KakaoTalk_20260327_121540482_02.jpg",
       "output_file": "slide_03_KakaoTalk_20260327_121540482_02.jpg",
-      "headline": "\"K 뷰티는 최고다\"",
-      "subheadline": "필리핀 손님 리얼 반응"
+      "headline": "아로마와 스팀이 만나는\n몽환적인 힐링 시간",
+      "subheadline": "한국의 미용기술이 선사하는 특별한 경험"
     },
     {
       "order": 4,
-      "source_file": "KakaoTalk_20260327_121540482_03.jpg",
-      "output_file": "slide_04_KakaoTalk_20260327_121540482_03.jpg",
-      "headline": "LED 헤드스파 + 두피 케어",
-      "subheadline": "두피 상태에 맞춘 맞춤 코스로 진행"
+      "source_file": "KakaoTalk_20260327_121540482_01.jpg",
+      "output_file": "slide_04_KakaoTalk_20260327_121540482_01.jpg",
+      "headline": "\"K-뷰티는 최고다!\"\n\"너무 시원했다!\"",
+      "subheadline": "외국인 고객들의 생생한 만족 리뷰"
     },
     {
       "order": 5,
       "source_file": "KakaoTalk_20260327_121540482_04.jpg",
       "output_file": "slide_05_KakaoTalk_20260327_121540482_04.jpg",
-      "headline": "서면 점포카페거리\n시선을 즐기다 head spa",
-      "subheadline": "부산 여행 중 들르기 좋은 위치 · 예약 문의 DM"
+      "headline": "헤드스파 후 서면 쇼핑까지\n완벽한 부산 여행 코스",
+      "subheadline": "시선을 즐기다에서 특별한 K-뷰티 체험해보세요"
     }
   ]
 }

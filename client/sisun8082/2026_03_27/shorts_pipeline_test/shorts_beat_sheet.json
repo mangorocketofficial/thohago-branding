@@ -1,0 +1,136 @@
+{
+  "version": "2.0",
+  "pipeline_mode": "script_first",
+  "source": {
+    "shop_id": "sisun8082",
+    "session_id": "2026_03_27",
+    "blog_story_map_id": "blog_story_map_001",
+    "main_angle": "필리핀 관광객 5명이 한국 오기 전부터 예약한 서면 헤드스파 경험",
+    "asset_counts": {
+      "photos": 5,
+      "videos": 2
+    }
+  },
+  "duration": {
+    "available_video_sec": 20.3,
+    "available_photo_sec_min": 6.0,
+    "available_photo_sec_max": 12.5,
+    "duration_band": "standard",
+    "target_output_sec": null,
+    "note": "target_output_sec is null — total duration is determined by TTS"
+  },
+  "editorial": {
+    "editorial_pattern": "tourist_reaction",
+    "primary_emotion": "curiosity",
+    "secondary_emotion": "delight",
+    "hook_type": "angle_hook",
+    "pace_curve": "fast_open_slow_finish",
+    "caption_density": "low",
+    "visual_style": "quiet_premium"
+  },
+  "selection_rules": {
+    "prefer_video_for": ["hook", "reaction"],
+    "prefer_photo_for": ["setup", "cta"],
+    "max_photo_hold_sec": 2.5,
+    "min_photo_hold_sec": 1.2,
+    "max_single_clip_sec": 5.0,
+    "allow_clip_trim": true,
+    "allow_photo_repeat": false,
+    "reaction_priority_order": [
+      "customer_quote",
+      "customer_face",
+      "device_usage",
+      "space_ambience"
+    ]
+  },
+  "beats": [
+    {
+      "beat_id": "b01",
+      "name": "hook",
+      "goal": "필리핀에서 예약까지 하고 찾아온 맥락으로 스크롤 정지",
+      "story_unit_ids": ["u01"],
+      "script_text": "필리핀에서 온 다섯 분이 한국 오기 전부터 예약하고 찾아온 서면 헤드스파.",
+      "script_tone": "curious_warm",
+      "overlay_text": ["필리핀 손님 5명이", "한국 오기 전부터 예약"],
+      "asset_preference": "video_first",
+      "asset_selection_rule": "단체 관광객이 시술받는 가장 인상적인 영상",
+      "message_focus": "필리핀 손님 5명이 한국 오기 전부터 예약",
+      "caption_mode": "on_screen_hook",
+      "transition_in": "hard_cut",
+      "transition_out": "soft_push"
+    },
+    {
+      "beat_id": "b02",
+      "name": "setup",
+      "goal": "두피 진단 기반 맞춤 코스라는 차별점 제시",
+      "story_unit_ids": ["u02"],
+      "script_text": "도착하자마자 두피 진단을 받고, 맞춤 코스를 추천받습니다.",
+      "script_tone": "calm_informative",
+      "overlay_text": ["두피 진단 → 맞춤 코스 추천"],
+      "asset_preference": "photo_first",
+      "asset_selection_rule": "진단 장비나 상담 장면이 보이는 사진",
+      "message_focus": "두피 진단 후 맞춤 코스를 추천받는다",
+      "caption_mode": "supporting_text",
+      "transition_in": "soft_push",
+      "transition_out": "fade"
+    },
+    {
+      "beat_id": "b03",
+      "name": "proof",
+      "goal": "스팀캡·캔들·LED 돔 시술 과정으로 기술력 증명",
+      "story_unit_ids": ["u03"],
+      "script_text": "다섯 명이 함께 케어를 시작합니다. 캔들 향이 퍼지는 동안 두피 집중 케어, 이어서 LED 테라피.",
+      "script_tone": "immersive",
+      "overlay_text": ["스팀캡 → 캔들 케어 → LED"],
+      "asset_preference": "hybrid",
+      "asset_selection_rule": "스팀캡 동시 시술, 캔들 케어, LED 돔 장면을 순서대로",
+      "message_focus": "스팀캡, 아로마 캔들, LED 테라피까지 이어지는 풀 케어",
+      "caption_mode": "supporting_text",
+      "transition_in": "fade",
+      "transition_out": "hard_cut"
+    },
+    {
+      "beat_id": "b04",
+      "name": "reaction",
+      "goal": "K-뷰티 최고라는 감정 피크 전달",
+      "story_unit_ids": ["u04"],
+      "script_text": "K-뷰티 최고라는 말을 연발하시고, 다들 너무 시원하다, 만족했다고 하시죠.",
+      "script_tone": "warm_delighted",
+      "overlay_text": ["\"K-뷰티는 최고다\"", "\"너무 시원하고 만족했다\""],
+      "asset_preference": "video_first",
+      "asset_selection_rule": "고객 반응이 느껴지는 영상 또는 마무리 셀카 사진",
+      "message_focus": "K-뷰티는 최고다, 너무 시원하고 만족했다",
+      "caption_mode": "quote_text",
+      "transition_in": "hard_cut",
+      "transition_out": "soft_push"
+    },
+    {
+      "beat_id": "b05",
+      "name": "cta",
+      "goal": "서면 관광 코스 안에서 쉬어갈 수 있는 곳으로 마무리",
+      "story_unit_ids": ["u05"],
+      "script_text": "여행 중 쉬어가고 싶은 곳, 시선을 즐기다에서 직접 느껴보세요.",
+      "script_tone": "gentle_closing",
+      "overlay_text": ["시선을 즐기다", "서면 헤드스파"],
+      "asset_preference": "photo_first",
+      "asset_selection_rule": "공간 분위기나 브랜드가 보이는 사진",
+      "message_focus": "서면 여행 중 쉬어가기 좋은 헤드스파",
+      "caption_mode": "cta_text",
+      "transition_in": "soft_push",
+      "transition_out": "fade"
+    }
+  ],
+  "script_guardrails": {
+    "per_beat_min_sec": 2.0,
+    "per_beat_max_sec": 10.0,
+    "total_min_sec": 15.0,
+    "total_max_sec": 35.0
+  },
+  "validation": {
+    "required_beats": ["hook", "proof", "reaction", "cta"],
+    "min_visual_evidence_count": 3,
+    "forbid_duplicate_message_focus": true,
+    "forbid_same_story_unit_back_to_back": true,
+    "hook_must_use_strongest_angle": true
+  }
+}

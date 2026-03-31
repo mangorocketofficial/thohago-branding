@@ -51,6 +51,7 @@ class TelegramSessionState:
     transcripts: list[dict[str, Any]]
     turn2_planner: dict[str, Any] | None
     turn3_planner: dict[str, Any] | None
+    pending_answer: str | None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -63,13 +64,19 @@ class TelegramBotApi:
         self.file_base_url = f"https://api.telegram.org/file/bot{token}"
 
     def get_updates(self, offset: int | None = None, timeout: int = 30) -> list[dict[str, Any]]:
-        payload: dict[str, Any] = {"timeout": timeout, "allowed_updates": ["message"]}
+        payload: dict[str, Any] = {"timeout": timeout, "allowed_updates": ["message", "callback_query"]}
         if offset is not None:
             payload["offset"] = offset
         return self._request("getUpdates", payload).get("result", [])
 
-    def send_message(self, chat_id: str, text: str) -> None:
-        self._request("sendMessage", {"chat_id": chat_id, "text": text})
+    def send_message(self, chat_id: str, text: str, reply_markup: dict[str, Any] | None = None) -> None:
+        payload: dict[str, Any] = {"chat_id": chat_id, "text": text}
+        if reply_markup:
+            payload["reply_markup"] = json.dumps(reply_markup)
+        self._request("sendMessage", payload)
+
+    def answer_callback_query(self, callback_query_id: str) -> None:
+        self._request("answerCallbackQuery", {"callback_query_id": callback_query_id})
 
     def delete_webhook(self, drop_pending_updates: bool = False) -> dict[str, Any]:
         return self._request("deleteWebhook", {"drop_pending_updates": drop_pending_updates})
@@ -174,15 +181,30 @@ class TelegramIntakeLoop:
 
     def run_forever(self) -> int:
         offset: int | None = None
+        retry_delay = 1
         while True:
-            updates = self.api.get_updates(offset=offset, timeout=30)
-            for update in updates:
-                offset = update["update_id"] + 1
-                self.handle_update(update)
-            if not updates:
-                time.sleep(1)
+            try:
+                updates = self.api.get_updates(offset=offset, timeout=30)
+                retry_delay = 1  # Reset on success
+                for update in updates:
+                    offset = update["update_id"] + 1
+                    try:
+                        self.handle_update(update)
+                    except Exception as exc:
+                        print(f"[bot] Error handling update: {exc}")
+                if not updates:
+                    time.sleep(1)
+            except Exception as exc:
+                print(f"[bot] Network error, retrying in {retry_delay}s: {exc}")
+                time.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2, 30)  # Exponential backoff, max 30s
 
     def handle_update(self, update: dict[str, Any]) -> None:
+        # Handle button clicks (callback_query)
+        if "callback_query" in update:
+            self._handle_callback_query(update["callback_query"])
+            return
+
         message = update.get("message")
         if not message:
             return
@@ -199,12 +221,11 @@ class TelegramIntakeLoop:
             self.api.send_message(chat_id, "아직 연결되지 않은 채팅입니다. 고객 전용 초대 링크를 다시 눌러서 시작해주세요.")
             return
         if text == "/begin":
-            state = self._create_new_session(shop, chat_id)
-            self.api.send_message(chat_id, f"새 세션을 시작했습니다.\n세션 ID: {state.session_id}\n이제 사진/영상을 보내고 /interview 를 입력해주세요.")
+            self._do_begin(shop, chat_id)
             return
         if text == "/reset":
             self.state_store.clear(chat_id)
-            self.api.send_message(chat_id, "현재 세션을 초기화했습니다. /begin 으로 다시 시작해주세요.")
+            self.api.send_message(chat_id, "현재 세션을 초기화했습니다.", reply_markup=self._begin_button())
             return
         if text == "/status":
             self.api.send_message(chat_id, self._render_status(chat_id))
@@ -225,17 +246,79 @@ class TelegramIntakeLoop:
         if text:
             self._handle_text_answer(shop, chat_id, text)
 
+    # ---- Button helpers ----
+
+    def _begin_button(self) -> dict:
+        return {"inline_keyboard": [[{"text": "📸 시작하기 (사진/영상 전송)", "callback_data": "begin"}]]}
+
+    def _interview_button(self) -> dict:
+        return {"inline_keyboard": [[{"text": "🎤 인터뷰하기", "callback_data": "interview"}]]}
+
+    def _confirm_answer_buttons(self) -> dict:
+        return {"inline_keyboard": [[
+            {"text": "✅ 확인", "callback_data": "confirm_answer"},
+            {"text": "🔄 다시 녹음", "callback_data": "retry_answer"},
+        ]]}
+
+    # ---- Callback query handler ----
+
+    def _handle_callback_query(self, query: dict[str, Any]) -> None:
+        chat_id = str(query["message"]["chat"]["id"])
+        data = query.get("data", "")
+        self.api.answer_callback_query(query["id"])
+
+        shop = self._resolve_shop_for_chat(chat_id)
+        if not shop:
+            self.api.send_message(chat_id, "아직 연결되지 않은 채팅입니다. 초대 링크를 다시 눌러주세요.")
+            return
+
+        if data == "begin":
+            self._do_begin(shop, chat_id)
+        elif data == "interview":
+            self.api.send_message(chat_id, "사진을 분석하고 있어요. 잠시만 기다려주세요...")
+            self._start_interview(shop, chat_id)
+        elif data == "confirm_answer":
+            self._confirm_pending_answer(shop, chat_id)
+        elif data == "retry_answer":
+            self._retry_pending_answer(shop, chat_id)
+
+    # ---- Begin flow ----
+
+    def _do_begin(self, shop: ShopConfig, chat_id: str) -> None:
+        state = self._create_new_session(shop, chat_id)
+        self.api.send_message(
+            chat_id,
+            "\n".join([
+                "안녕하세요!",
+                "새로운 포스팅을 만들어볼까요?",
+                "",
+                "사진(최대 5장)이나 영상(30초 이내)을 첨부해주세요.",
+            ]),
+        )
+
+    # ---- Start command ----
+
     def _handle_start(self, chat_id: str, text: str) -> None:
         parts = text.split(maxsplit=1)
         invite_token = parts[1].strip() if len(parts) > 1 else ""
         bound_shop = self._resolve_shop_for_chat(chat_id)
 
         if bound_shop and not invite_token:
-            self.api.send_message(chat_id, HELP_TEXT)
+            # Re-entered — check if active session exists
+            state = self.state_store.load(chat_id)
+            if state and state.stage not in ("completed",):
+                self.api.send_message(chat_id, f"진행 중인 세션이 있어요. 사진/영상을 보내거나 아래 버튼을 눌러주세요.", reply_markup=self._interview_button())
+            else:
+                self._do_begin(bound_shop, chat_id)
             return
 
         if bound_shop and invite_token:
-            self.api.send_message(chat_id, f"이미 `{bound_shop.shop_id}` 에 연결된 채팅입니다. 바로 /begin 으로 시작해주세요.")
+            # Already bound — just start new session
+            state = self.state_store.load(chat_id)
+            if state and state.stage not in ("completed",):
+                self.api.send_message(chat_id, f"진행 중인 세션이 있어요. 사진/영상을 보내거나 아래 버튼을 눌러주세요.", reply_markup=self._interview_button())
+            else:
+                self._do_begin(bound_shop, chat_id)
             return
 
         if not invite_token:
@@ -248,17 +331,9 @@ class TelegramIntakeLoop:
             self.api.send_message(chat_id, "유효하지 않은 초대 링크입니다. 최신 고객 전용 링크를 다시 받아서 시도해주세요.")
             return
 
+        # Bind + immediately create session
         self.state_store.bind_chat_to_shop(chat_id, shop.shop_id)
-        self.api.send_message(
-            chat_id,
-            "\n".join(
-                [
-                    f"{shop.display_name} 전용 채팅으로 연결되었습니다.",
-                    "이제 /begin 으로 새 세션을 시작해주세요.",
-                    HELP_TEXT,
-                ]
-            ),
-        )
+        self._do_begin(shop, chat_id)
 
     def _resolve_shop_for_chat(self, chat_id: str) -> ShopConfig | None:
         bound_shop_id = self.state_store.resolve_bound_shop_id(chat_id)
@@ -275,6 +350,8 @@ class TelegramIntakeLoop:
             self.api.send_message(chat_id, "이미 인터뷰가 시작됐습니다. 새 세션은 /reset 후 /begin 으로 시작해주세요.")
             return
 
+        self.api.send_message(chat_id, "사진을 저장하고 있어요...")
+
         photo_sizes = message["photo"]
         file_id = photo_sizes[-1]["file_id"]
         destination = Path(state.raw_dir) / f"photo_{len(state.photo_paths) + 1:02d}.jpg"
@@ -287,12 +364,27 @@ class TelegramIntakeLoop:
             message_type="photo",
             file_paths=[str(saved_path)],
         )
-        self.api.send_message(chat_id, f"사진 저장 완료 ({len(state.photo_paths)}장). 더 보내거나 /interview 를 입력해주세요.")
+        self.api.send_message(
+            chat_id,
+            f"사진 저장 완료 ({len(state.photo_paths)}장). 다 보내셨으면 아래 버튼을 눌러주세요.",
+            reply_markup=self._interview_button(),
+        )
+
+    MAX_VIDEO_DURATION_SEC = 60
 
     def _handle_video_message(self, shop: ShopConfig, chat_id: str, message: dict[str, Any]) -> None:
         state = self._load_or_create_collecting_session(shop, chat_id)
         if state.stage != "collecting_media":
             self.api.send_message(chat_id, "이미 인터뷰가 시작됐습니다. 새 세션은 /reset 후 /begin 으로 시작해주세요.")
+            return
+
+        # Check video duration from Telegram metadata
+        video_duration = message.get("video", {}).get("duration", 0)
+        if video_duration > self.MAX_VIDEO_DURATION_SEC:
+            self.api.send_message(
+                chat_id,
+                f"영상이 너무 깁니다 ({video_duration}초). 1분 이내 영상만 사용 가능합니다. 짧은 영상으로 다시 보내주세요.",
+            )
             return
 
         file_id = message["video"]["file_id"]
@@ -306,13 +398,19 @@ class TelegramIntakeLoop:
             message_type="video",
             file_paths=[str(saved_path)],
         )
-        self.api.send_message(chat_id, f"영상 저장 완료 ({len(state.video_paths)}개). 더 보내거나 /interview 를 입력해주세요.")
+        self.api.send_message(
+            chat_id,
+            f"영상 저장 완료 ({len(state.video_paths)}개). 다 보내셨으면 아래 버튼을 눌러주세요.",
+            reply_markup=self._interview_button(),
+        )
 
     def _handle_audio_message(self, shop: ShopConfig, chat_id: str, message: dict[str, Any]) -> None:
         state = self.state_store.load(chat_id)
         if not state or not state.stage.startswith("awaiting_turn"):
             self.api.send_message(chat_id, "현재는 인터뷰 답변을 받을 단계가 아닙니다. /status 로 상태를 확인해주세요.")
             return
+
+        self.api.send_message(chat_id, "음성을 처리하고 있어요...")
 
         file_id = (message.get("voice") or message.get("audio"))["file_id"]
         turn_index = self._stage_to_turn_index(state.stage)
@@ -334,8 +432,15 @@ class TelegramIntakeLoop:
                     f"음성 전사에 실패했습니다: {exc}\n같은 답변을 텍스트로 한 번만 보내주세요.",
                 )
                 return
-            self.api.send_message(chat_id, f"음성 전사 완료: {result.text}")
-            self._handle_text_answer(shop, chat_id, result.text)
+            # Save pending answer and ask for confirmation
+            state.pending_answer = result.text
+            state.stage = f"confirming_turn{turn_index}"
+            self.state_store.save(state)
+            self.api.send_message(
+                chat_id,
+                "이 답변으로 제출하시겠어요?",
+                reply_markup=self._confirm_answer_buttons(),
+            )
             return
 
         self.api.send_message(
@@ -345,12 +450,52 @@ class TelegramIntakeLoop:
 
     def _handle_text_answer(self, shop: ShopConfig, chat_id: str, text: str) -> None:
         state = self.state_store.load(chat_id)
-        if not state or not state.stage.startswith("awaiting_turn"):
+        if not state:
             self.api.send_message(chat_id, "현재 인터뷰 단계가 아닙니다. /begin 후 사진을 보내고 /interview 로 시작해주세요.")
             return
 
-        artifacts = self._artifacts_from_state(shop, state)
+        # If in confirming stage, treat text as a new answer replacing pending
+        if state.stage.startswith("confirming_turn"):
+            turn_index = self._stage_to_turn_index(state.stage)
+            state.pending_answer = text
+            self.state_store.save(state)
+            self.api.send_message(
+                chat_id,
+                "이 답변으로 제출하시겠어요?",
+                reply_markup=self._confirm_answer_buttons(),
+            )
+            return
+
+        if not state.stage.startswith("awaiting_turn"):
+            self.api.send_message(chat_id, "현재 인터뷰 단계가 아닙니다. /begin 후 사진을 보내고 /interview 로 시작해주세요.")
+            return
+
+        # Save pending answer and ask for confirmation
         turn_index = self._stage_to_turn_index(state.stage)
+        state.pending_answer = text
+        state.stage = f"confirming_turn{turn_index}"
+        self.state_store.save(state)
+        self.api.send_message(
+            chat_id,
+            "이 답변으로 제출하시겠어요?",
+            reply_markup=self._confirm_answer_buttons(),
+        )
+        return
+
+    def _confirm_pending_answer(self, shop: ShopConfig, chat_id: str) -> None:
+        """User confirmed their answer — proceed to next question."""
+        state = self.state_store.load(chat_id)
+        if not state or not state.stage.startswith("confirming_turn"):
+            return
+
+        turn_index = self._stage_to_turn_index(state.stage)
+        text = state.pending_answer or ""
+        state.pending_answer = None
+        state.stage = f"awaiting_turn{turn_index}_answer"  # Restore to process
+
+        self.api.send_message(chat_id, "답변이 제출되었어요. 다음 질문을 준비하고 있어요...")
+
+        artifacts = self._artifacts_from_state(shop, state)
         source_path = Path(state.transcripts_dir) / f"turn{turn_index}_live_input.txt"
         write_text(source_path, text)
         transcript_artifact = self.pipeline.write_transcript_artifact(
@@ -411,6 +556,16 @@ class TelegramIntakeLoop:
             self.api.send_message(chat_id, planner.next_question)
             return
 
+        self.api.send_message(
+            chat_id,
+            "\n".join([
+                "모든 답변이 제출되었어요.",
+                "인터뷰에 응해주셔서 감사드립니다!",
+                "",
+                "곧 콘텐츠를 만들어서 보내드리도록 하겠습니다!",
+            ]),
+        )
+
         transcript_artifacts = [self._transcript_from_dict(item) for item in state.transcripts]
         content_bundle_path, blog_article_path, publish_result_path = self.pipeline.finalize_session(
             artifacts=artifacts,
@@ -424,17 +579,18 @@ class TelegramIntakeLoop:
         )
         state.stage = "completed"
         self.state_store.save(state)
-        publish_result = json.loads(publish_result_path.read_text(encoding="utf-8"))
-        completion_text = "\n".join(
-            [
-                "인터뷰와 콘텐츠 생성이 완료됐습니다.",
-                f"- content_bundle: {content_bundle_path.name}",
-                f"- blog_article: {blog_article_path.name}",
-                f"- publish_status: {publish_result['status']}",
-                f"- publish_url: {publish_result.get('published_url')}",
-            ]
-        )
-        self.api.send_message(chat_id, completion_text)
+
+    def _retry_pending_answer(self, shop: ShopConfig, chat_id: str) -> None:
+        """User wants to re-record — go back to awaiting state."""
+        state = self.state_store.load(chat_id)
+        if not state or not state.stage.startswith("confirming_turn"):
+            return
+
+        turn_index = self._stage_to_turn_index(state.stage)
+        state.pending_answer = None
+        state.stage = f"awaiting_turn{turn_index}_answer"
+        self.state_store.save(state)
+        self.api.send_message(chat_id, "답변을 다시 보내주세요. 음성 또는 텍스트 모두 가능합니다.")
 
     def _start_interview(self, shop: ShopConfig, chat_id: str) -> None:
         state = self.state_store.load(chat_id)
@@ -448,11 +604,20 @@ class TelegramIntakeLoop:
             self.api.send_message(chat_id, "사진이 없습니다. 최소 1장 이상의 사진을 먼저 보내주세요.")
             return
 
+        # Use only the latest 5 photos
+        MAX_PHOTOS = 5
+        selected_photos = state.photo_paths[-MAX_PHOTOS:]
+        if len(state.photo_paths) > MAX_PHOTOS:
+            self.api.send_message(
+                chat_id,
+                f"사진 {len(state.photo_paths)}장 중 최근 {MAX_PHOTOS}장을 사용합니다.",
+            )
+
         artifacts = self._artifacts_from_state(shop, state)
         preflight, photo_assets, video_assets, _ = self._prepare_media_with_fallback(
             artifacts=artifacts,
             shop=shop,
-            photos=[Path(path) for path in state.photo_paths],
+            photos=[Path(path) for path in selected_photos],
             videos=[Path(path) for path in state.video_paths],
             chat_id=chat_id,
         )
@@ -497,6 +662,7 @@ class TelegramIntakeLoop:
             transcripts=[],
             turn2_planner=None,
             turn3_planner=None,
+            pending_answer=None,
         )
         write_json(Path(state.artifact_dir) / "session_metadata.json", {
             "shop_id": shop.shop_id,
@@ -548,6 +714,9 @@ class TelegramIntakeLoop:
             "awaiting_turn1_answer": 1,
             "awaiting_turn2_answer": 2,
             "awaiting_turn3_answer": 3,
+            "confirming_turn1": 1,
+            "confirming_turn2": 2,
+            "confirming_turn3": 3,
         }[stage]
 
     def _planner_from_dict(self, payload: dict[str, Any] | None) -> PlannerOutput:

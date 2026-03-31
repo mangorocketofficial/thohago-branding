@@ -1,0 +1,8 @@
+file 'C:/Users/User/Desktop/Thohago_branding/client/sisun8082/2026_03_27/shorts_pipeline_test/render_output/segments/c01.mp4'
+file 'C:/Users/User/Desktop/Thohago_branding/client/sisun8082/2026_03_27/shorts_pipeline_test/render_output/segments/c02.mp4'
+file 'C:/Users/User/Desktop/Thohago_branding/client/sisun8082/2026_03_27/shorts_pipeline_test/render_output/segments/c03.mp4'
+file 'C:/Users/User/Desktop/Thohago_branding/client/sisun8082/2026_03_27/shorts_pipeline_test/render_output/segments/c04.mp4'
+file 'C:/Users/User/Desktop/Thohago_branding/client/sisun8082/2026_03_27/shorts_pipeline_test/render_output/segments/c05.mp4'
+file 'C:/Users/User/Desktop/Thohago_branding/client/sisun8082/2026_03_27/shorts_pipeline_test/render_output/segments/c06.mp4'
+file 'C:/Users/User/Desktop/Thohago_branding/client/sisun8082/2026_03_27/shorts_pipeline_test/render_output/segments/c07.mp4'
+file 'C:/Users/User/Desktop/Thohago_branding/client/sisun8082/2026_03_27/shorts_pipeline_test/render_output/segments/c08.mp4'

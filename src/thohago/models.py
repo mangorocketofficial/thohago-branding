@@ -29,6 +29,7 @@ class ShopConfig:
     telegram_chat_ids: list[str]
     publish: PublishConfig
     media_hints: list[str] = field(default_factory=list)
+    profile: dict[str, Any] = field(default_factory=dict)
     sample_sessions: dict[str, SampleSession] = field(default_factory=dict)
 
 

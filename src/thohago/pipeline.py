@@ -4,7 +4,7 @@ from pathlib import Path
 
 from thohago.artifacts import append_chat_log, copy_file, create_session_artifacts, write_json, write_text
 from thohago.content import BlogComposer
-from thohago.interview_engine import HeuristicMultimodalInterviewEngine, TURN1_QUESTION
+from thohago.interview_engine import HeuristicMultimodalInterviewEngine, TURN1_QUESTION_FALLBACK
 from thohago.models import SessionRunResult, ShopConfig, TranscriptArtifact
 from thohago.publish import MissingCredentialNaverPublisher, MockNaverPublisher
 from thohago.transcription import SidecarTranscriptProvider
@@ -49,12 +49,12 @@ class Phase1ReplayPipeline:
             videos=videos,
         )
 
-        write_text(artifacts.prompts_dir / "turn1_question.txt", TURN1_QUESTION)
+        write_text(artifacts.prompts_dir / "turn1_question.txt", TURN1_QUESTION_FALLBACK)
         self.log_chat_event(
             artifacts=artifacts,
             sender="bot",
             message_type="text",
-            text=TURN1_QUESTION,
+            text=TURN1_QUESTION_FALLBACK,
             metadata={"turn_index": 1},
         )
 
@@ -255,7 +255,7 @@ class Phase1ReplayPipeline:
             "videos": [asset.to_dict() for asset in video_assets],
             "media_preflight": preflight,
             "interview": {
-                "turn1_question": TURN1_QUESTION,
+                "turn1_question": TURN1_QUESTION_FALLBACK,
                 "turn2_question": turn2_planner.next_question,
                 "turn3_question": turn3_planner.next_question,
                 "turn1_transcript": transcript_artifacts[0].transcript_text,

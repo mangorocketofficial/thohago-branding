@@ -16,8 +16,11 @@ class FakeTelegramApi:
         self.file_map = file_map
         self.sent_messages: list[tuple[str, str]] = []
 
-    def send_message(self, chat_id: str, text: str) -> None:
+    def send_message(self, chat_id: str, text: str, reply_markup=None) -> None:
         self.sent_messages.append((chat_id, text))
+
+    def answer_callback_query(self, callback_query_id: str) -> None:
+        pass
 
     def download_file(self, file_id: str, destination: Path) -> Path:
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -45,9 +48,15 @@ class TelegramIntakeLoopTests(unittest.TestCase):
             loop.handle_update({"message": {"chat": {"id": int(chat_id)}, "text": "/begin"}})
             loop.handle_update({"message": {"chat": {"id": int(chat_id)}, "photo": [{"file_id": "photo1"}]}})
             loop.handle_update({"message": {"chat": {"id": int(chat_id)}, "text": "/interview"}})
+            # Turn 1: answer + confirm
             loop.handle_update({"message": {"chat": {"id": int(chat_id)}, "text": "외국인 관광객이 한국 오기 전에 미리 예약하고 방문했어요."}})
+            loop.handle_update({"callback_query": {"id": "cb1", "message": {"chat": {"id": int(chat_id)}}, "data": "confirm_answer"}})
+            # Turn 2: answer + confirm
             loop.handle_update({"message": {"chat": {"id": int(chat_id)}, "text": "시술 받으면서 너무 시원하고 좋았다고 반응하셨어요."}})
+            loop.handle_update({"callback_query": {"id": "cb2", "message": {"chat": {"id": int(chat_id)}}, "data": "confirm_answer"}})
+            # Turn 3: answer + confirm
             loop.handle_update({"message": {"chat": {"id": int(chat_id)}, "text": "서면 중심가라 관광 동선상 들르기 좋아요."}})
+            loop.handle_update({"callback_query": {"id": "cb3", "message": {"chat": {"id": int(chat_id)}}, "data": "confirm_answer"}})
 
             state = loop.state_store.load(chat_id)
             self.assertIsNotNone(state)
@@ -59,7 +68,8 @@ class TelegramIntakeLoopTests(unittest.TestCase):
             chat_lines = Path(state.chat_log_path).read_text(encoding="utf-8").splitlines()
             self.assertGreaterEqual(len(chat_lines), 8)
             self.assertEqual(json.loads(chat_lines[-1])["metadata"]["stage"], "completed")
-            self.assertIn("publish_status", fake_api.sent_messages[-1][1])
+            # Last user-facing message should be the completion thank-you
+            self.assertIn("감사", fake_api.sent_messages[-1][1])
 
     def test_unregistered_chat_is_rejected(self) -> None:
         config = load_config()

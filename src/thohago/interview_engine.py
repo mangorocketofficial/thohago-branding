@@ -4,17 +4,13 @@ from pathlib import Path
 from typing import Iterable
 
 from thohago.heuristics import (
-    choose_missing_elements,
-    choose_question_strategy,
-    detect_elements,
     detect_main_angle,
     extract_keywords,
-    score_specificity,
 )
 from thohago.models import MediaAsset, PlannerOutput, ShopConfig
 
 
-TURN1_QUESTION = "이번 포스팅에 대해 이야기해볼까요? 어떤 상황이었고, 무엇이 가장 인상깊으셨나요?"
+TURN1_QUESTION_FALLBACK = "이 사진 속 상황이 궁금해요! 이날 어떤 일이 있었는지 처음부터 끝까지 쭉 들려주세요."
 
 
 class HeuristicMultimodalInterviewEngine:
@@ -76,41 +72,45 @@ class HeuristicMultimodalInterviewEngine:
         }
         return preflight, photo_assets, video_assets
 
-    def plan_turn(
-        self,
-        turn_index: int,
-        transcripts: Iterable[str],
-        preflight: dict,
-    ) -> PlannerOutput:
-        transcript_text = " ".join(transcripts)
-        main_angle = detect_main_angle(transcript_text)
-        covered_elements = detect_elements(transcript_text)
-        missing_elements = choose_missing_elements(covered_elements)
-        specificity_score = score_specificity(transcript_text)
-        strategy = choose_question_strategy(turn_index, covered_elements, specificity_score)
-        evidence = list(preflight.get("key_visual_evidence", []))[:2]
-        next_question = self._render_question(strategy, main_angle, evidence)
+    def plan_turn1(self, preflight: dict) -> PlannerOutput:
+        """Q1: Scene Anchor — heuristic fallback."""
+        photos = preflight.get("photos", [])
+        selected = [p for p in photos if p.get("selected_for_prompt")]
+        anchor = selected[0] if selected else (photos[0] if photos else None)
+        if anchor:
+            details = anchor.get("preflight_analysis", {}).get("details", [])
+            clue = details[0] if isinstance(details, list) and details else str(details) if details else ""
+        else:
+            clue = ""
+
+        if clue:
+            question = f"사진에서 {clue} 장면이 보이는데요, 이날 어떤 일이 있었는지 처음부터 끝까지 쭉 들려주세요."
+        else:
+            question = TURN1_QUESTION_FALLBACK
+
         return PlannerOutput(
-            turn_index=turn_index,
-            main_angle=main_angle,
-            covered_elements=covered_elements,
-            missing_elements=missing_elements,
-            question_strategy=strategy,
-            next_question=next_question,
-            evidence=evidence,
+            turn_index=1, main_angle="", covered_elements=[], missing_elements=[],
+            question_strategy="scene_anchor", next_question=question,
+            evidence=list(preflight.get("key_visual_evidence", []))[:2],
         )
 
-    def _render_question(self, strategy: str, main_angle: str, evidence: list[str]) -> str:
-        clue = evidence[0] if evidence else "사진 속 분위기"
-        if strategy == "reaction_probe":
-            return f"사진에서 {clue} 장면이 인상적인데요, 그 순간 고객분들이 가장 좋다고 반응하셨던 포인트는 뭐였어요?"
-        if strategy == "differentiator_probe":
-            return f"사진처럼 {clue}가 보이는데, 다른 곳이 아니라 여기만의 차별점은 뭐라고 설명하시겠어요?"
-        if strategy == "entry_channel_probe":
-            return "이번 고객분들은 어떻게 매장을 알고 예약까지 하시게 됐어요?"
-        if strategy == "location_probe":
-            return "매장 위치나 동선 때문에 고객분들이 편하게 느끼는 포인트가 있었나요?"
-        return f"{main_angle}라는 이야기가 이미 좋은데요, 사진의 {clue} 장면에서 실제 분위기는 어땠는지 더 들려주실 수 있을까요?"
+    def plan_turn(self, turn_index: int, transcripts: Iterable[str], preflight: dict) -> PlannerOutput:
+        """Q2: Detail Deepening / Q3: Owner's Perspective — heuristic fallback."""
+        transcript_text = " ".join(transcripts)
+        main_angle = detect_main_angle(transcript_text)
+        evidence = list(preflight.get("key_visual_evidence", []))[:2]
+
+        if turn_index == 2:
+            question = "방금 말씀하신 장면에서 가장 기억에 남는 순간이 있다면, 그때 분위기나 반응을 좀 더 자세히 들려주세요."
+            strategy = "detail_deepening"
+        else:
+            question = "이런 경험들을 하시면서 사장님 개인적으로 어떤 생각이 드셨어요?"
+            strategy = "owner_perspective"
+
+        return PlannerOutput(
+            turn_index=turn_index, main_angle=main_angle, covered_elements=[], missing_elements=[],
+            question_strategy=strategy, next_question=question, evidence=evidence,
+        )
 
     def build_turn_question_artifact(self, planner: PlannerOutput) -> dict:
         payload = planner.to_dict()

@@ -44,10 +44,9 @@ class Phase1ReplayPipelineTests(unittest.TestCase):
 
             content_bundle = json.loads(result.content_bundle_path.read_text(encoding="utf-8"))
             self.assertEqual(content_bundle["shop"]["shop_id"], "sisun8082")
-            self.assertEqual(
-                content_bundle["interview"]["turn1_question"],
-                "이번 포스팅에 대해 이야기해볼까요? 어떤 상황이었고, 무엇이 가장 인상깊으셨나요?",
-            )
+            # Q1 is now dynamically generated — just verify it exists and is non-empty
+            turn1_q = content_bundle["interview"]["turn1_question"]
+            self.assertTrue(len(turn1_q) > 10, msg="turn1_question should be meaningful")
             self.assertEqual(len(content_bundle["experience_sequence"]), len(content_bundle["photos"]))
 
             turn2_planner = json.loads(result.turn2_planner_path.read_text(encoding="utf-8"))

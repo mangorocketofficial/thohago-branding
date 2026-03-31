@@ -177,55 +177,58 @@ class GroqMultimodalInterviewEngine:
         }
         return preflight, photo_assets, video_assets
 
+    def plan_turn1(self, preflight: dict) -> PlannerOutput:
+        prompt_photo_paths = self._selected_photo_paths(preflight)
+        response = self.client.chat_completion({
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": "You are a shop interview planner for any industry. Create one short, natural Korean question. Return JSON with keys: main_angle, question_strategy, next_question, evidence."},
+                {"role": "user", "content": [
+                    {"type": "text", "text": (
+                        "Q1: Scene Anchor\n\n사진을 보고, 사장님이 '그날 있었던 일'을 처음부터 끝까지 풀어놓게 만드는 질문을 1개 생성하세요.\n"
+                        "사진의 구체적 단서를 질문에 포함. 평가/판단/설명 유도 금지.\n\n"
+                        f"사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
+                    )},
+                    *[self._image_message(path) for path in prompt_photo_paths],
+                ]},
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": 0.3,
+        })
+        parsed = json.loads(response["choices"][0]["message"]["content"])
+        return PlannerOutput(turn_index=1, main_angle=parsed.get("main_angle", ""), covered_elements=[], missing_elements=[], question_strategy="scene_anchor", next_question=parsed.get("next_question", ""), evidence=list(parsed.get("evidence", [])))
+
     def plan_turn(self, turn_index: int, transcripts: list[str], preflight: dict) -> PlannerOutput:
         prompt_photo_paths = self._selected_photo_paths(preflight)
-        transcript_blob = "\n".join(
-            f"Turn {index}: {text}" for index, text in enumerate(transcripts, start=1)
-        )
-        response = self.client.chat_completion(
-            {
-                "model": self.model,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a Korean beauty-shop interview planner. "
-                            "You must create one short, natural Korean follow-up question. "
-                            "Return JSON only with keys: main_angle, covered_elements, missing_elements, "
-                            "question_strategy, next_question, evidence."
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": (
-                                    f"Current turn to generate: Turn {turn_index}\n"
-                                    f"Interview transcripts so far:\n{transcript_blob}\n\n"
-                                    f"Media preflight summary:\n{json.dumps(preflight, ensure_ascii=False)}\n\n"
-                                    "Make the next question concrete and short. Ask about the highest-value missing element. "
-                                    "Keep it answerable in under one minute."
-                                ),
-                            },
-                            *[self._image_message(path) for path in prompt_photo_paths],
-                        ],
-                    },
-                ],
-                "response_format": {"type": "json_object"},
-                "temperature": 0.3,
-            }
-        )
+        transcript_blob = "\n".join(f"Turn {i}: {t}" for i, t in enumerate(transcripts, 1))
+        if turn_index == 2:
+            user_text = (
+                "Q2: Detail Deepening\n\nQ1 답변에서 가장 묘사할 가치가 있는 '한 순간'을 찾아 감각적 디테일을 끌어내는 질문을 생성하세요.\n"
+                "같은 장면 안에 머물러야 합니다. 다른 주제 금지.\n\n"
+                f"Q1 답변:\n{transcript_blob}\n\n사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
+            )
+            strategy = "detail_deepening"
+        else:
+            user_text = (
+                "Q3: Owner's Perspective\n\nQ1+Q2 답변을 읽고, 이 경험에 대한 사장님의 개인적 시선과 의미를 끌어내는 질문을 생성하세요.\n"
+                "예/아니오 금지. 미래 질문 금지. 홍보/설명 유도 금지.\n\n"
+                f"Q1+Q2 답변:\n{transcript_blob}\n\n사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
+            )
+            strategy = "owner_perspective"
+        response = self.client.chat_completion({
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": "You are a shop interview planner for any industry. Create one short, natural Korean follow-up question. Return JSON with keys: main_angle, question_strategy, next_question, evidence."},
+                {"role": "user", "content": [
+                    {"type": "text", "text": user_text},
+                    *[self._image_message(path) for path in prompt_photo_paths],
+                ]},
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": 0.3,
+        })
         parsed = json.loads(response["choices"][0]["message"]["content"])
-        return PlannerOutput(
-            turn_index=turn_index,
-            main_angle=parsed.get("main_angle", ""),
-            covered_elements=list(parsed.get("covered_elements", [])),
-            missing_elements=list(parsed.get("missing_elements", [])),
-            question_strategy=parsed.get("question_strategy", "follow_up"),
-            next_question=parsed.get("next_question", ""),
-            evidence=list(parsed.get("evidence", [])),
-        )
+        return PlannerOutput(turn_index=turn_index, main_angle=parsed.get("main_angle", ""), covered_elements=[], missing_elements=[], question_strategy=strategy, next_question=parsed.get("next_question", ""), evidence=list(parsed.get("evidence", [])))
 
     def build_turn_question_artifact(self, planner: PlannerOutput) -> dict:
         payload = planner.to_dict()

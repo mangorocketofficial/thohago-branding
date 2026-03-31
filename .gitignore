@@ -7,3 +7,6 @@ __pycache__/
 .pytest_cache/
 **/__MACOSX/
 **/._*
+*.egg-info/
+tmp_*.mp3
+previews/
