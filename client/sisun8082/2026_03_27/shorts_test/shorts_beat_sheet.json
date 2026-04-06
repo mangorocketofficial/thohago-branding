@@ -1,0 +1,136 @@
+{
+  "version": "1.0",
+  "source": {
+    "shop_id": "sisun8082",
+    "session_id": "2026_03_27",
+    "blog_story_map_id": "shorts_test_story_map_001",
+    "main_angle": "필리핀 관광객 5명이 한국 오기 전부터 예약하고 함께 받은 헤드스파 경험",
+    "asset_counts": {
+      "photos": 5,
+      "videos": 2
+    }
+  },
+  "duration": {
+    "available_video_sec": 20.343,
+    "available_photo_sec_min": 6.5,
+    "available_photo_sec_max": 12.0,
+    "estimated_total_sec": 26.8,
+    "target_output_sec": 23.4,
+    "duration_band": "standard"
+  },
+  "editorial": {
+    "editorial_pattern": "tourist_reaction",
+    "primary_emotion": "curiosity",
+    "secondary_emotion": "delight",
+    "hook_type": "angle_hook",
+    "pace_curve": "fast_open_slow_finish",
+    "caption_density": "low",
+    "visual_style": "quiet_premium"
+  },
+  "selection_rules": {
+    "prefer_video_for": ["hook", "proof", "reaction"],
+    "prefer_photo_for": ["setup", "cta"],
+    "max_photo_hold_sec": 2.8,
+    "min_photo_hold_sec": 1.8,
+    "max_single_clip_sec": 4.8,
+    "allow_clip_trim": true,
+    "allow_photo_repeat": true,
+    "reaction_priority_order": [
+      "customer_quote",
+      "customer_face",
+      "device_usage",
+      "space_ambience"
+    ]
+  },
+  "beats": [
+    {
+      "beat_id": "b01",
+      "name": "hook",
+      "goal": "한국 오기 전부터 예약한 5인 단체 맥락으로 시선을 붙잡기",
+      "story_unit_ids": ["u01"],
+      "duration_sec": 3.2,
+      "asset_preference": "video_first",
+      "asset_selection_rule": "상담/단체 맥락이 보이는 짧은 영상 또는 단체 맥락 사진",
+      "message_focus": "필리핀 관광객 5명이 한국 오기 전부터 예약했다",
+      "caption_mode": "on_screen_hook",
+      "voiceover_mode": "required",
+      "transition_in": "hard_cut",
+      "transition_out": "soft_push"
+    },
+    {
+      "beat_id": "b02",
+      "name": "setup",
+      "goal": "두피 진단과 맞춤 추천으로 왜 이 경험이 특별한지 설명",
+      "story_unit_ids": ["u02"],
+      "duration_sec": 4.0,
+      "asset_preference": "photo_first",
+      "asset_selection_rule": "상담/진단이 보이는 장면",
+      "message_focus": "도착하자마자 두피 진단을 받고 맞춤 코스를 추천받는다",
+      "caption_mode": "supporting_text",
+      "voiceover_mode": "required",
+      "transition_in": "soft_push",
+      "transition_out": "fade"
+    },
+    {
+      "beat_id": "b03",
+      "name": "proof",
+      "goal": "동시 케어 장면과 스팀캡/LED 장비로 실제 증거 제시",
+      "story_unit_ids": ["u03", "u05"],
+      "duration_sec": 6.2,
+      "asset_preference": "hybrid",
+      "asset_selection_rule": "동시 시술 장면과 LED 테라피 장면을 우선 사용",
+      "message_focus": "단체 동시 케어와 장비가 이 샵의 경험을 증명한다",
+      "caption_mode": "supporting_text",
+      "voiceover_mode": "required",
+      "transition_in": "fade",
+      "transition_out": "hard_cut"
+    },
+    {
+      "beat_id": "b04",
+      "name": "reaction",
+      "goal": "외국인 고객의 강한 만족 리액션을 감정 피크로 보여주기",
+      "story_unit_ids": ["u04", "u05"],
+      "duration_sec": 6.0,
+      "asset_preference": "video_first",
+      "asset_selection_rule": "반응을 상상하게 만드는 LED/릴렉스 장면과 인용문 결합",
+      "message_focus": "K-뷰티 최고라는 반응과 시원하다는 리액션",
+      "caption_mode": "quote_text",
+      "voiceover_mode": "required",
+      "transition_in": "hard_cut",
+      "transition_out": "soft_push"
+    },
+    {
+      "beat_id": "b05",
+      "name": "cta",
+      "goal": "입소문과 서면 위치 장점을 부드럽게 마무리",
+      "story_unit_ids": ["u06"],
+      "duration_sec": 4.0,
+      "asset_preference": "photo_first",
+      "asset_selection_rule": "마무리 릴렉스 또는 상담 장면으로 마감",
+      "message_focus": "서면 관광 동선 안에서 쉬어가기 좋은 헤드스파",
+      "caption_mode": "cta_text",
+      "voiceover_mode": "required",
+      "transition_in": "soft_push",
+      "transition_out": "fade"
+    }
+  ],
+  "script_budget": {
+    "total_caption_chars_max": 90,
+    "total_voiceover_chars_max": 125,
+    "per_beat": {
+      "hook": { "caption_chars_max": 18, "voiceover_chars_max": 22 },
+      "setup": { "caption_chars_max": 24, "voiceover_chars_max": 28 },
+      "proof": { "caption_chars_max": 30, "voiceover_chars_max": 34 },
+      "reaction": { "caption_chars_max": 24, "voiceover_chars_max": 26 },
+      "cta": { "caption_chars_max": 18, "voiceover_chars_max": 20 }
+    }
+  },
+  "validation": {
+    "required_beats": ["hook", "proof", "reaction", "cta"],
+    "max_total_duration_delta_sec": 0.6,
+    "min_visual_evidence_count": 4,
+    "forbid_duplicate_message_focus": true,
+    "forbid_same_story_unit_back_to_back": true,
+    "hook_must_use_strongest_angle": true
+  }
+}

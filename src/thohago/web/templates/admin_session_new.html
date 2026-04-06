@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p class="eyebrow">Admin</p>
+<h1>Create Session</h1>
+<p class="lede">Generate a fresh customer link for an existing shop.</p>
+
+{% if error_message %}
+<div class="notice error">{{ error_message }}</div>
+{% endif %}
+
+<form method="post" action="/admin/sessions" class="stack">
+    <label>
+        <span>Shop</span>
+        <select name="shop_id" required>
+            {% for shop in shops %}
+            <option value="{{ shop.shop_id }}">{{ shop.shop_id }} - {{ shop.display_name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>
+        <span>Session Key</span>
+        <input type="text" name="session_key" placeholder="optional custom session key">
+    </label>
+
+    <button type="submit">Create Session</button>
+</form>
+
+<div class="action-row">
+    <a href="/admin/sessions" class="button-link subtle-link">Back To Sessions</a>
+</div>
+{% endblock %}

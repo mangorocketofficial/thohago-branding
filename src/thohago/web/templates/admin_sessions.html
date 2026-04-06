@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p class="eyebrow">Admin</p>
+<h1>Sessions</h1>
+<p class="lede">Inspect sessions across the intake lifecycle and jump into detailed per-session history.</p>
+
+{% if error_message %}
+<div class="notice error">{{ error_message }}</div>
+{% endif %}
+
+<div class="action-row">
+    <a href="/admin/sessions/new" class="button-link">Create New Session</a>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Session ID</th>
+                <th>Shop ID</th>
+                <th>Stage</th>
+                <th>Created</th>
+                <th>Open</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in sessions %}
+            <tr>
+                <td>{{ session.id }}</td>
+                <td>{{ session.shop_id }}</td>
+                <td><span class="stage-chip">{{ session.stage }}</span></td>
+                <td>{{ session.created_at }}</td>
+                <td><a href="/admin/sessions/{{ session.id }}">Detail</a></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">No sessions created yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

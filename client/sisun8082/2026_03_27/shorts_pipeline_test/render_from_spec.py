@@ -429,23 +429,35 @@ def render_overlay_png(text: str, kind: str, position: str, out_path: Path) -> N
     img.save(str(out_path), "PNG")
 
 
+def split_at_midpoint(text: str) -> list[str]:
+    """Split text into 2 lines at the space closest to the midpoint."""
+    if " " not in text:
+        return [text]
+    mid = len(text) // 2
+    # Find the closest space to the midpoint
+    left = text.rfind(" ", 0, mid + 1)
+    right = text.find(" ", mid)
+    if left == -1:
+        split_pos = right
+    elif right == -1:
+        split_pos = left
+    else:
+        split_pos = left if (mid - left) <= (right - mid) else right
+    return [text[:split_pos].strip(), text[split_pos:].strip()]
+
+
 def render_subtitle_png(text: str, out_path: Path) -> None:
     fontsize = 44
     font = ImageFont.truetype(str(SUBTITLE_FONT_PATH), fontsize)
     img = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    words = text.split()
-    wrapped = []
-    cur = ""
-    for w in words:
-        test = f"{cur} {w}".strip()
-        bb = draw.textbbox((0, 0), test, font=font)
-        if bb[2] - bb[0] > WIDTH - 120:
-            if cur: wrapped.append(cur)
-            cur = w
-        else:
-            cur = test
-    if cur: wrapped.append(cur)
+
+    # Check if single line fits
+    bb = draw.textbbox((0, 0), text, font=font)
+    if bb[2] - bb[0] <= WIDTH - 120:
+        wrapped = [text]
+    else:
+        wrapped = split_at_midpoint(text)
     lhs = [draw.textbbox((0, 0), l, font=font) for l in wrapped]
     th = sum(b[3] - b[1] for b in lhs) + (len(wrapped) - 1) * 8
     pad = 16

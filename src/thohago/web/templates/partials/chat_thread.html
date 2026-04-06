@@ -1,0 +1,15 @@
+{% if messages %}
+{% for message in messages %}
+<article class="chat-message chat-message--{{ message.role }}{% if message.is_status %} chat-message--status{% endif %}">
+    {% with role=message.role %}
+    {% include "partials/chat_avatar.html" %}
+    {% endwith %}
+    <div class="chat-bubble-stack">
+        <p class="chat-label">{{ message.label }}</p>
+        <div class="chat-bubble">
+            <p>{{ message.text | replace('\n', '<br>') | safe }}</p>
+        </div>
+    </div>
+</article>
+{% endfor %}
+{% endif %}

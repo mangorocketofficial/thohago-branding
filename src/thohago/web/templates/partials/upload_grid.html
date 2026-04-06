@@ -1,0 +1,28 @@
+<section class="upload-list">
+    <div class="list-header">
+        <h2>업로드한 파일</h2>
+        <p>{{ media_files|length }}개</p>
+    </div>
+
+    {% if media_files %}
+    <ul class="upload-items">
+        {% for media in media_files %}
+        <li class="upload-item">
+            <div>
+                <strong>{{ media.filename }}</strong>
+                <p>
+                    {% if media.kind == "photo" %}사진{% elif media.kind == "video" %}영상{% else %}파일{% endif %}
+                    {% if media.file_size %} · {{ media.file_size }}B{% endif %}
+                </p>
+            </div>
+            <form method="post" action="/s/{{ session.customer_token }}/upload/delete">
+                <input type="hidden" name="media_file_id" value="{{ media.id }}">
+                <button type="submit" class="secondary-button">삭제</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state">아직 업로드한 파일이 없어요.</div>
+    {% endif %}
+</section>

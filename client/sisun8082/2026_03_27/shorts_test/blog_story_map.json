@@ -1,0 +1,159 @@
+{
+  "version": "1.0",
+  "source": {
+    "shop_id": "sisun8082",
+    "session_id": "2026_03_27",
+    "content_bundle_id": "manual_blog_test_001",
+    "blog_article_path": "client/sisun8082/2026_03_27/interview/blog.md",
+    "photo_count": 5,
+    "video_count": 2,
+    "asset_aliases": {
+      "photo_01": "2인 동시 시술 와이드",
+      "photo_02": "싱글 체어 릴렉스",
+      "photo_03": "캔들 옆 집중 케어",
+      "photo_04": "LED 돔 테라피",
+      "photo_05": "거울 앞 상담",
+      "video_01": "LED 돔/힐링 무드 13.3초 세로 영상",
+      "video_02": "상담/단체 맥락 7.0초 가로 영상"
+    }
+  },
+  "summary": {
+    "main_angle": "필리핀 관광객 5명이 한국 오기 전부터 예약하고 부산 여행 중 함께 받은 헤드스파 경험",
+    "main_angle_strength": 0.94,
+    "primary_story_type": "tourist_group_experience",
+    "dominant_emotion": "curiosity",
+    "secondary_emotion": "delight",
+    "blog_structure_mode": "narrative_flow",
+    "compression_recommendation": "tourist_reaction"
+  },
+  "story_units": [
+    {
+      "unit_id": "u01",
+      "type": "context",
+      "title": "한국 오기 전 예약한 필리핀 단체 고객",
+      "summary": "필리핀에서 부산 관광 온 5명이 한국 오기 전부터 예약하고 방문했다.",
+      "importance": 0.97,
+      "emotion_weight": 0.82,
+      "compression_priority": 0.99,
+      "blog_section_order": 1,
+      "photo_ids": [],
+      "video_ids": ["video_02"],
+      "content_roles": ["hook", "setup"],
+      "proof_strength": "medium",
+      "quote_candidates": [
+        "필리핀 손님 5명이 한국 오기 전부터 예약했어요.",
+        "부산 여행 코스 안에 헤드스파를 넣고 찾아오셨어요."
+      ]
+    },
+    {
+      "unit_id": "u02",
+      "type": "differentiator",
+      "title": "두피 진단 기반 맞춤 추천",
+      "summary": "도착 직후 두피검사를 하고 결과에 맞는 코스를 추천하는 점이 차별점으로 작동한다.",
+      "importance": 0.89,
+      "emotion_weight": 0.58,
+      "compression_priority": 0.86,
+      "blog_section_order": 2,
+      "photo_ids": ["photo_05"],
+      "video_ids": ["video_02"],
+      "content_roles": ["setup", "proof"],
+      "proof_strength": "high",
+      "quote_candidates": [
+        "두피 상태를 보고 맞는 코스를 추천해드려요.",
+        "본인 두피 상태를 눈으로 확인하는 경험이 신선했어요."
+      ]
+    },
+    {
+      "unit_id": "u03",
+      "type": "proof",
+      "title": "5명 동시 케어와 스팀캡 장면",
+      "summary": "한 공간에서 함께 누워 동시에 케어를 받는 장면 자체가 집단 방문 경험의 핵심 증거다.",
+      "importance": 0.93,
+      "emotion_weight": 0.72,
+      "compression_priority": 0.95,
+      "blog_section_order": 3,
+      "photo_ids": ["photo_01"],
+      "video_ids": [],
+      "content_roles": ["proof", "reaction"],
+      "proof_strength": "high",
+      "quote_candidates": [
+        "1명부터 5명까지 동시 케어가 가능해요.",
+        "나란히 누워 같이 받으니까 분위기가 정말 좋았어요."
+      ]
+    },
+    {
+      "unit_id": "u04",
+      "type": "reaction",
+      "title": "캔들 케어와 K-뷰티 리액션",
+      "summary": "캔들 향과 집중 케어 속에서 말이 줄고, 이후 K-뷰티 최고라는 반응이 나온다.",
+      "importance": 0.92,
+      "emotion_weight": 0.9,
+      "compression_priority": 0.94,
+      "blog_section_order": 4,
+      "photo_ids": ["photo_03"],
+      "video_ids": [],
+      "content_roles": ["proof", "reaction"],
+      "proof_strength": "medium",
+      "quote_candidates": [
+        "K-뷰티는 최고다.",
+        "한국 사람들은 미용기술이 정말 뛰어나다."
+      ]
+    },
+    {
+      "unit_id": "u05",
+      "type": "reaction",
+      "title": "LED 테라피와 힐링 피크",
+      "summary": "LED 돔 테라피 장면은 시각적으로 강하고, 실제로 너무 시원하고 잠들 것 같다는 반응이 이어진다.",
+      "importance": 0.96,
+      "emotion_weight": 0.97,
+      "compression_priority": 1.0,
+      "blog_section_order": 5,
+      "photo_ids": ["photo_04"],
+      "video_ids": ["video_01"],
+      "content_roles": ["proof", "reaction"],
+      "proof_strength": "high",
+      "quote_candidates": [
+        "너무 시원하다.",
+        "잠들 것 같다."
+      ]
+    },
+    {
+      "unit_id": "u06",
+      "type": "closing",
+      "title": "입소문과 관광 동선 장점",
+      "summary": "외국인 사이에서 입소문이 쌓였고, 서면 점포카페거리 위치 덕분에 관광 동선 중 들르기 좋다.",
+      "importance": 0.78,
+      "emotion_weight": 0.34,
+      "compression_priority": 0.68,
+      "blog_section_order": 6,
+      "photo_ids": ["photo_02"],
+      "video_ids": [],
+      "content_roles": ["setup", "cta"],
+      "proof_strength": "medium",
+      "quote_candidates": [
+        "외국인 사이에서 이미 입소문이 난 매장이에요.",
+        "부산 여행 코스 중간에 넣기 딱 좋은 위치예요."
+      ]
+    }
+  ],
+  "compression_hints": {
+    "must_keep_unit_ids": ["u01", "u03", "u05"],
+    "optional_unit_ids": ["u02", "u04", "u06"],
+    "drop_first_unit_ids": [],
+    "best_hook_unit_id": "u01",
+    "best_reaction_unit_id": "u05",
+    "best_proof_unit_id": "u03",
+    "recommended_editorial_patterns": [
+      "tourist_reaction",
+      "group_visit_story"
+    ]
+  },
+  "validation": {
+    "min_story_unit_count": 4,
+    "require_main_angle": true,
+    "require_hook_candidate": true,
+    "require_proof_candidate": true,
+    "require_reaction_candidate": true,
+    "forbid_empty_summary": true
+  }
+}

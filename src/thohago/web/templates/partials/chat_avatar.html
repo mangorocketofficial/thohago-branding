@@ -1,0 +1,14 @@
+{% if role == "assistant" %}
+<div class="chat-avatar chat-avatar--assistant" aria-hidden="true">
+    <svg viewBox="0 0 24 24" class="chat-avatar-icon" focusable="false">
+        <rect x="6" y="7" width="12" height="10" rx="3"></rect>
+        <path d="M9 4.5h6"></path>
+        <path d="M12 4.5V7"></path>
+        <circle cx="10" cy="11.5" r="1"></circle>
+        <circle cx="14" cy="11.5" r="1"></circle>
+        <path d="M9.5 14.5h5"></path>
+    </svg>
+</div>
+{% else %}
+<div class="chat-avatar" aria-hidden="true">나</div>
+{% endif %}

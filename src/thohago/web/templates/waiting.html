@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+<meta http-equiv="refresh" content="15;url=/s/{{ session.customer_token }}">
+{% endblock %}
+
+{% block content %}
+<section class="customer-chat">
+    <header class="chat-header">
+        <p class="eyebrow">또하Go 제작 연결</p>
+        <h1>제작 대기</h1>
+        <p class="lede">인터뷰가 끝났어요. 같은 링크를 열어두면 미리보기가 준비되는 즉시 이어서 보여드릴게요.</p>
+    </header>
+
+    <section class="chat-thread" aria-label="제작 대기 대화">
+        {% with messages=conversation_messages %}
+        {% include "partials/chat_thread.html" %}
+        {% endwith %}
+    </section>
+
+    <section class="chat-rich-card">
+        <div class="composer-head">
+            <span class="stage-chip">실시간 확인</span>
+            <h2>이 링크를 그대로 열어두세요</h2>
+        </div>
+        <p class="lede compact">이 페이지는 15초마다 자동으로 다시 확인하고, SSE 이벤트가 오면 미리보기 화면으로 바로 이동합니다.</p>
+    </section>
+
+    <dl class="meta-list">
+        <div>
+            <dt>가게</dt>
+            <dd>{{ shop.display_name if shop else session.shop_id }}</dd>
+        </div>
+        <div>
+            <dt>세션</dt>
+            <dd>{{ session.id }}</dd>
+        </div>
+        <div>
+            <dt>상태</dt>
+            <dd>{{ session.stage }}</dd>
+        </div>
+    </dl>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+    window.setTimeout(function () {
+        window.location.href = "/s/{{ session.customer_token }}";
+    }, 15000);
+
+    (function () {
+        const eventSource = new EventSource("{{ events_url }}");
+        eventSource.addEventListener("preview_ready", function (event) {
+            const payload = JSON.parse(event.data);
+            if (payload && payload.url) {
+                window.location.href = payload.url;
+            }
+        });
+    })();
+</script>
+{% endblock %}

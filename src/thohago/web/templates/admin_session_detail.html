@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p class="eyebrow">Admin Detail</p>
+<h1>Session Detail</h1>
+<p class="lede">Inspect the current state, customer link, conversation history, and generated artifacts for this session.</p>
+
+{% if created_flag %}
+<div class="notice success">
+    <strong>Session created.</strong><br>
+    <span>Customer URL: <a href="{{ customer_url }}">{{ customer_url }}</a></span>
+</div>
+{% endif %}
+
+<div class="stats-grid">
+    <div class="stat-box">
+        <span class="stat-label">Session ID</span>
+        <strong>{{ session.id }}</strong>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Shop</span>
+        <strong>{{ shop.display_name if shop else session.shop_id }}</strong>
+    </div>
+    <div class="stat-box">
+        <span class="stat-label">Stage</span>
+        <strong class="stage-chip">{{ session.stage }}</strong>
+    </div>
+</div>
+
+<div class="meta-stack">
+    <div class="meta-panel">
+        <h2>Links</h2>
+        <p><a href="{{ customer_url }}">{{ customer_url }}</a></p>
+        <p><a href="{{ preview_url }}">Preview Route</a></p>
+        <p><a href="{{ complete_url }}">Complete Route</a></p>
+    </div>
+    <div class="meta-panel">
+        <h2>Timestamps</h2>
+        <p>Created: {{ session.created_at }}</p>
+        <p>Updated: {{ session.updated_at }}</p>
+        <p>Interview Complete: {{ session.interview_completed_at or "n/a" }}</p>
+        <p>Production Complete: {{ session.production_completed_at or "n/a" }}</p>
+        <p>Approved At: {{ session.approved_at or "n/a" }}</p>
+    </div>
+</div>
+
+<section class="preview-section">
+    <h2>Message History</h2>
+    {% if messages %}
+    <div class="message-list">
+        {% for message in messages %}
+        <article class="message-card">
+            <div class="message-head">
+                <strong>{{ message.sender }}</strong>
+                <span>{{ message.message_type }}</span>
+                <span>{{ message.created_at }}</span>
+            </div>
+            {% if message.turn_index %}
+            <p class="muted-line">Turn {{ message.turn_index }}</p>
+            {% endif %}
+            {% if message.text %}
+            <p>{{ message.text }}</p>
+            {% endif %}
+            {% if message.relative_path %}
+            <p class="muted-line">{{ message.relative_path }}</p>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">No session messages recorded yet.</div>
+    {% endif %}
+</section>
+
+<section class="preview-section">
+    <h2>Artifacts</h2>
+    {% if artifacts %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Relative Path</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for artifact in artifacts %}
+                <tr>
+                    <td>{{ artifact.artifact_type }}</td>
+                    <td>{{ artifact.relative_path }}</td>
+                    <td>{{ artifact.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">No artifacts recorded yet.</div>
+    {% endif %}
+    <p class="muted-line">Artifact root: {{ artifact_root }}</p>
+</section>
+
+<div class="action-row">
+    <a href="/admin/sessions" class="button-link subtle-link">Back To Sessions</a>
+    <a href="/admin/sessions/new" class="button-link">Create Another Session</a>
+</div>
+{% endblock %}

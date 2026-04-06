@@ -267,6 +267,12 @@ class Phase1ReplayPipeline:
             },
             "structure_mode": preflight["structure_mode"],
             "experience_sequence": preflight["experience_sequence"],
+            "instagram": {
+                "carousel_photo_ids": [
+                    asset.media_id for asset in photo_assets if asset.selected_for_prompt
+                ],
+                "photo_count": len([a for a in photo_assets if a.selected_for_prompt]),
+            },
         }
         content_bundle_path = artifacts.generated_dir / "content_bundle.json"
         write_json(content_bundle_path, content_bundle)

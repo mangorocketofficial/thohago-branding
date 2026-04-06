@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="customer-chat">
+    <header class="chat-header">
+        <p class="eyebrow">또하Go 미리보기</p>
+        <h1>미리보기 확인</h1>
+        <p class="lede">준비된 콘텐츠를 확인하고 바로 승인하거나 수정 요청을 남길 수 있어요.</p>
+    </header>
+
+    {% if error_message %}
+    <div class="notice error">{{ error_message }}</div>
+    {% endif %}
+
+    <section class="chat-thread" aria-label="미리보기 대화">
+        {% with messages=conversation_messages %}
+        {% include "partials/chat_thread.html" %}
+        {% endwith %}
+    </section>
+
+    {% if preview_context %}
+    <div class="action-row">
+        <form method="post" action="/s/{{ session.customer_token }}/approval">
+            <input type="hidden" name="action" value="approve">
+            <button type="submit">승인하기</button>
+        </form>
+        <form method="post" action="/s/{{ session.customer_token }}/approval">
+            <input type="hidden" name="action" value="revision">
+            <button type="submit" class="secondary-button">수정 요청하기</button>
+        </form>
+    </div>
+
+    {% if preview_context.shorts_video_path %}
+    <section class="chat-rich-card">
+        <div class="composer-head">
+            <span class="stage-chip">숏츠</span>
+            <h2>영상 미리보기</h2>
+        </div>
+        <video controls class="preview-video">
+            <source src="/s/{{ session.customer_token }}/files/{{ preview_context.shorts_video_path }}" type="video/mp4">
+        </video>
+    </section>
+    {% endif %}
+
+    {% if preview_context.carousel_image_paths %}
+    <section class="chat-rich-card">
+        <div class="composer-head">
+            <span class="stage-chip">캐러셀</span>
+            <h2>이미지 미리보기</h2>
+        </div>
+        <div class="image-grid">
+            {% for image_path in preview_context.carousel_image_paths %}
+            <img src="/s/{{ session.customer_token }}/files/{{ image_path }}" alt="캐러셀 이미지 {{ loop.index }}">
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if preview_context.blog_html_content %}
+    <section class="chat-rich-card">
+        <div class="composer-head">
+            <span class="stage-chip">블로그</span>
+            <h2>본문 미리보기</h2>
+        </div>
+        <div class="blog-preview">{{ preview_context.blog_html_content | safe }}</div>
+    </section>
+    {% endif %}
+
+    {% if preview_context.thread_text_content %}
+    <section class="chat-rich-card">
+        <div class="composer-head">
+            <span class="stage-chip">스레드</span>
+            <h2>텍스트 미리보기</h2>
+        </div>
+        <pre class="thread-preview">{{ preview_context.thread_text_content }}</pre>
+    </section>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">아직 미리보기 파일이 준비되지 않았어요.</div>
+    {% endif %}
+
+    <dl class="meta-list">
+        <div>
+            <dt>가게</dt>
+            <dd>{{ shop.display_name if shop else session.shop_id }}</dd>
+        </div>
+        <div>
+            <dt>세션</dt>
+            <dd>{{ session.id }}</dd>
+        </div>
+        <div>
+            <dt>상태</dt>
+            <dd>{{ session.stage }}</dd>
+        </div>
+    </dl>
+</section>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="customer-chat">
+    <header class="chat-header">
+        <p class="eyebrow">또하Go 인터뷰</p>
+        <h1>{{ question_title }}</h1>
+        <p class="lede">업로드한 내용을 바탕으로 질문을 이어갈게요. 편한 방식으로 답변해 주세요.</p>
+    </header>
+
+    {% if error_message %}
+    <div class="notice error">{{ error_message }}</div>
+    {% endif %}
+
+    <section class="chat-thread" aria-label="인터뷰 대화">
+        {% with messages=conversation_messages %}
+        {% include "partials/chat_thread.html" %}
+        {% endwith %}
+
+        {% if is_confirming and pending_answer %}
+        <article class="chat-message chat-message--user chat-message--pending">
+            <div class="chat-avatar" aria-hidden="true">나</div>
+            <div class="chat-bubble-stack">
+                <p class="chat-label">답변 확인 중</p>
+                <div class="chat-bubble">
+                    <p>{{ pending_answer | replace('\n', '<br>') | safe }}</p>
+                </div>
+            </div>
+        </article>
+        {% endif %}
+    </section>
+
+    <section
+        class="chat-composer-shell"
+        id="voice-answer-panel"
+        data-events-url="{{ events_url }}"
+        data-record-url="{{ record_url }}"
+        data-submit-url="{{ submit_url }}"
+        data-retry-url="/s/{{ session.customer_token }}/interview/retry"
+        data-is-confirming="{% if is_confirming %}true{% else %}false{% endif %}"
+    >
+        <form method="post" action="{{ submit_url }}" class="chat-inline-form" id="text-answer-form">
+            <label class="sr-only" for="answer-textarea">답변 입력</label>
+            <div class="composer-field">
+                <textarea
+                    name="answer_text"
+                    rows="3"
+                    required
+                    id="answer-textarea"
+                    class="composer-textarea"
+                    {% if is_confirming %}readonly{% endif %}
+                    placeholder="{% if is_confirming %}이 답변으로 계속 진행하거나 채팅창 안의 마이크 버튼으로 새 녹음을 시작할 수 있어요.{% else %}답변을 입력하거나 채팅창 안의 마이크 버튼으로 녹음해 주세요.{% endif %}"
+                >{% if is_confirming and pending_answer %}{{ pending_answer }}{% endif %}</textarea>
+
+                <span id="recording-indicator" class="recording-indicator composer-field-indicator is-hidden">
+                    <span class="recording-dot"></span>
+                    녹음 중
+                </span>
+
+                <div class="composer-inline-actions">
+                    <button
+                        type="button"
+                        id="start-recording"
+                        class="icon-button composer-mic-button"
+                        aria-label="{% if is_confirming %}새 음성 녹음 시작{% else %}음성 입력 시작{% endif %}"
+                    >
+                        <svg viewBox="0 0 24 24" class="icon-svg" focusable="false">
+                            <path d="M12 4a3 3 0 0 1 3 3v4a3 3 0 1 1-6 0V7a3 3 0 0 1 3-3Z"></path>
+                            <path d="M7.5 10.5v.5a4.5 4.5 0 0 0 9 0v-.5"></path>
+                            <path d="M12 15.5V20"></path>
+                            <path d="M9 20h6"></path>
+                        </svg>
+                    </button>
+                    <button
+                        type="button"
+                        id="stop-recording"
+                        class="icon-button composer-stop-button is-hidden"
+                        aria-label="녹음 완료"
+                    >
+                        <svg viewBox="0 0 24 24" class="icon-svg" focusable="false">
+                            <rect x="7" y="7" width="10" height="10" rx="2"></rect>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            {% if not is_confirming %}
+            <button type="submit" class="composer-send-button secondary-button">보내기</button>
+            {% endif %}
+        </form>
+
+        <p id="voice-status" class="composer-status">
+            {% if is_confirming %}
+            채팅창 안의 마이크 버튼을 누르면 현재 답변 대신 새 녹음을 시작합니다.
+            {% else %}
+            텍스트 입력이나 음성 입력 중 편한 방식으로 답변해 주세요.
+            {% endif %}
+        </p>
+    </section>
+
+    {% if is_confirming %}
+    <form method="post" action="/s/{{ session.customer_token }}/interview/confirm" class="stack compact-stack">
+        <button type="submit">다음 인터뷰하기</button>
+    </form>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ request.url_for('static', path='recorder.js') }}"></script>
+{% endblock %}

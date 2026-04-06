@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="customer-chat">
+    <header class="chat-header">
+        <p class="eyebrow">또하Go 완료</p>
+        <h1>승인 완료</h1>
+        <p class="lede">미리보기에 대한 승인이 정상적으로 접수되었습니다. 같은 링크에서 완료 상태를 다시 확인할 수 있어요.</p>
+    </header>
+
+    <section class="chat-thread" aria-label="완료 대화">
+        {% with messages=conversation_messages %}
+        {% include "partials/chat_thread.html" %}
+        {% endwith %}
+
+        <article class="chat-message chat-message--assistant chat-message--status">
+            {% with role="assistant" %}
+            {% include "partials/chat_avatar.html" %}
+            {% endwith %}
+            <div class="chat-bubble-stack">
+                <p class="chat-label">안내</p>
+                <div class="chat-bubble">
+                    <p>승인이 완료되었어요. 이후 제작 이력은 운영자 쪽에서 이어서 관리됩니다.</p>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <dl class="meta-list">
+        <div>
+            <dt>가게</dt>
+            <dd>{{ shop.display_name if shop else session.shop_id }}</dd>
+        </div>
+        <div>
+            <dt>세션</dt>
+            <dd>{{ session.id }}</dd>
+        </div>
+        <div>
+            <dt>상태</dt>
+            <dd>{{ session.stage }}</dd>
+        </div>
+    </dl>
+</section>
+{% endblock %}

@@ -10,6 +10,15 @@ class AppConfig:
     repo_root: Path
     shops_file: Path
     artifact_root: Path
+    web_database_path: Path
+    web_base_url: str
+    web_admin_username: str
+    web_admin_password: str
+    web_sync_api_token: str
+    web_max_upload_photos: int
+    web_max_upload_videos: int
+    web_max_video_duration_sec: int
+    web_stt_mode: str
     default_interview_engine: str
     default_stt_provider: str
     default_publisher: str
@@ -21,6 +30,14 @@ class AppConfig:
     anthropic_model: str
     openai_api_key: str | None
     openai_model: str
+    # Instagram Graph API
+    instagram_access_token: str | None
+    instagram_business_account_id: str | None
+    facebook_page_id: str | None
+    instagram_graph_version: str
+    # Threads API
+    threads_access_token: str | None
+    threads_user_id: str | None
 
 
 def load_dotenv_file(dotenv_path: Path) -> None:
@@ -41,10 +58,21 @@ def load_config(repo_root: Path | None = None) -> AppConfig:
     load_dotenv_file(root / ".env")
     shops_file = Path(os.environ.get("THOHAGO_SHOPS_FILE", "config/shops.example.json"))
     artifact_root = Path(os.environ.get("THOHAGO_ARTIFACT_ROOT", "runs"))
+    web_database_path = Path(os.environ.get("THOHAGO_WEB_DB_PATH", "runs/_web_runtime/web.sqlite3"))
+    web_base_url = os.environ.get("THOHAGO_WEB_BASE_URL", "http://localhost:8000").rstrip("/")
     return AppConfig(
         repo_root=root,
         shops_file=(root / shops_file).resolve(),
         artifact_root=(root / artifact_root).resolve(),
+        web_database_path=(root / web_database_path).resolve(),
+        web_base_url=web_base_url,
+        web_admin_username=os.environ.get("THOHAGO_ADMIN_USERNAME", "admin"),
+        web_admin_password=os.environ.get("THOHAGO_ADMIN_PASSWORD", "thohago-dev-password"),
+        web_sync_api_token=os.environ.get("THOHAGO_SYNC_API_TOKEN", "thohago-sync-dev-token"),
+        web_max_upload_photos=int(os.environ.get("THOHAGO_WEB_MAX_UPLOAD_PHOTOS", "5")),
+        web_max_upload_videos=int(os.environ.get("THOHAGO_WEB_MAX_UPLOAD_VIDEOS", "1")),
+        web_max_video_duration_sec=int(os.environ.get("THOHAGO_WEB_MAX_VIDEO_DURATION_SEC", "60")),
+        web_stt_mode=os.environ.get("THOHAGO_WEB_STT_MODE", "stub"),
         default_interview_engine=os.environ.get("THOHAGO_DEFAULT_INTERVIEW_ENGINE", "heuristic"),
         default_stt_provider=os.environ.get("THOHAGO_DEFAULT_STT_PROVIDER", "sidecar"),
         default_publisher=os.environ.get("THOHAGO_DEFAULT_PUBLISHER", "mock_naver"),
@@ -59,4 +87,12 @@ def load_config(repo_root: Path | None = None) -> AppConfig:
         anthropic_model=os.environ.get("THOHAGO_ANTHROPIC_MODEL", "claude-opus-4-5-20251101"),
         openai_api_key=os.environ.get("OPENAI_API_KEY") or os.environ.get("GPT_API_KEY"),
         openai_model=os.environ.get("THOHAGO_OPENAI_MODEL", "gpt-4o-mini"),
+        # Instagram Graph API
+        instagram_access_token=os.environ.get("GRAPH_META_ACCESS_TOKEN"),
+        instagram_business_account_id=os.environ.get("INSTAGRAM_BUSINESS_ACCOUNT_ID"),
+        facebook_page_id=os.environ.get("FACEBOOK_PAGE_ID"),
+        instagram_graph_version=os.environ.get("INSTAGRAM_GRAPH_VERSION", "v23.0"),
+        # Threads API
+        threads_access_token=os.environ.get("THREADS_ACCESS_TOKEN"),
+        threads_user_id=os.environ.get("THREADS_USER_ID"),
     )

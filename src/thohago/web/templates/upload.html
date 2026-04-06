@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>사진+영상 업로드 하기</h1>
+<p class="lede">가게 : {{ shop.display_name if shop else session.shop_id }}</p>
+
+{% if error_message %}
+<div class="notice error">{{ error_message }}</div>
+{% endif %}
+
+<form method="post" action="/s/{{ session.customer_token }}/upload" enctype="multipart/form-data" class="stack">
+    <label>
+        <span>파일 선택하기</span>
+        <input
+            type="file"
+            name="media"
+            accept="image/*,video/*"
+            multiple
+            required
+            onchange="if (this.files && this.files.length) { this.form.requestSubmit(); }"
+        >
+    </label>
+</form>
+
+{% include "partials/upload_grid.html" %}
+
+<form method="post" action="/s/{{ session.customer_token }}/upload/done" class="stack compact-stack">
+    <button type="submit">인터뷰하기</button>
+</form>
+{% endblock %}

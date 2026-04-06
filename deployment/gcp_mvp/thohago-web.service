@@ -1,0 +1,15 @@
+[Unit]
+Description=Thohago Web MVP
+After=network.target
+
+[Service]
+User=thohago
+Group=thohago
+WorkingDirectory=/opt/thohago/app
+Environment=PYTHONPATH=/opt/thohago/app/src
+ExecStart=/opt/thohago/venv/bin/uvicorn thohago.web.app:create_app --factory --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

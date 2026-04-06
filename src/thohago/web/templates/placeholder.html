@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p class="eyebrow">Placeholder</p>
+<h1>{{ heading }}</h1>
+<p class="lede">{{ description }}</p>
+
+<dl class="meta-list">
+    <div>
+        <dt>Session ID</dt>
+        <dd>{{ session.id }}</dd>
+    </div>
+    <div>
+        <dt>Stage</dt>
+        <dd>{{ session.stage }}</dd>
+    </div>
+</dl>
+{% endblock %}

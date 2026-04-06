@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import re
 import time
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
@@ -10,8 +12,12 @@ from urllib.request import Request, urlopen
 
 from thohago.artifacts import create_session_artifacts, write_json, write_text
 from thohago.anthropic_live import AnthropicApiClient, AnthropicMultimodalInterviewEngine
-from thohago.config import load_config
+from thohago.config import AppConfig, load_config
 from thohago.groq_live import GroqApiClient, GroqMultimodalInterviewEngine, GroqTranscriptionProvider
+from thohago.instagram_content import InstagramCaptionComposer
+from thohago.instagram_publish import InstagramGraphPublisher, InstagramPublishError
+from thohago.threads_content import ThreadsCaptionComposer
+from thohago.threads_publish import ThreadsPublisher, ThreadsPublishError
 from thohago.openai_live import OpenAIChatCompletionsClient, OpenAIMultimodalInterviewEngine
 from thohago.models import MediaAsset, PlannerOutput, SessionArtifacts, ShopConfig, TranscriptArtifact
 from thohago.pipeline import Phase1ReplayPipeline
@@ -52,6 +58,8 @@ class TelegramSessionState:
     turn2_planner: dict[str, Any] | None
     turn3_planner: dict[str, Any] | None
     pending_answer: str | None
+    instagram_caption: str | None
+    threads_caption: str | None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -159,6 +167,22 @@ class TelegramStateStore:
         bindings[chat_id] = shop_id
         self._binding_path().write_text(json.dumps(bindings, ensure_ascii=False, indent=2), encoding="utf-8")
 
+    def claim_update(self, update_id: int | None) -> bool:
+        if update_id is None:
+            return True
+        claims_dir = self.runtime_root / "processed_updates"
+        claims_dir.mkdir(parents=True, exist_ok=True)
+        claim_path = claims_dir / f"{update_id}.claim"
+        try:
+            handle = os.open(str(claim_path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            return False
+        try:
+            os.write(handle, datetime.now(UTC).isoformat().encode("utf-8"))
+        finally:
+            os.close(handle)
+        return True
+
 
 class TelegramIntakeLoop:
     def __init__(
@@ -170,6 +194,8 @@ class TelegramIntakeLoop:
         pipeline: Phase1ReplayPipeline | None = None,
         fallback_pipeline: Phase1ReplayPipeline | None = None,
         final_fallback_pipeline: Phase1ReplayPipeline | None = None,
+        instagram_publisher: InstagramGraphPublisher | None = None,
+        threads_publisher: ThreadsPublisher | None = None,
     ) -> None:
         self.api = api
         self.artifact_root = artifact_root
@@ -178,6 +204,13 @@ class TelegramIntakeLoop:
         self.pipeline = pipeline or Phase1ReplayPipeline()
         self.fallback_pipeline = fallback_pipeline or Phase1ReplayPipeline()
         self.final_fallback_pipeline = final_fallback_pipeline or Phase1ReplayPipeline()
+        self.instagram_publisher = instagram_publisher
+        self.threads_publisher = threads_publisher
+        self.instagram_caption_composer = InstagramCaptionComposer()
+        self.threads_caption_composer = ThreadsCaptionComposer()
+        # Debounce: track last media receive time per chat to send interview button once
+        self._media_debounce: dict[str, float] = {}
+        self._media_debounce_notified: set[str] = set()
 
     def run_forever(self) -> int:
         offset: int | None = None
@@ -192,6 +225,7 @@ class TelegramIntakeLoop:
                         self.handle_update(update)
                     except Exception as exc:
                         print(f"[bot] Error handling update: {exc}")
+                self._check_media_debounce()
                 if not updates:
                     time.sleep(1)
             except Exception as exc:
@@ -199,7 +233,41 @@ class TelegramIntakeLoop:
                 time.sleep(retry_delay)
                 retry_delay = min(retry_delay * 2, 30)  # Exponential backoff, max 30s
 
+    MEDIA_DEBOUNCE_SEC = 5
+
+    def _check_media_debounce(self) -> None:
+        """After MEDIA_DEBOUNCE_SEC of silence, send the interview-start button once."""
+        now = time.monotonic()
+        done = []
+        for chat_id, last_time in self._media_debounce.items():
+            if chat_id in self._media_debounce_notified:
+                done.append(chat_id)
+                continue
+            if now - last_time >= self.MEDIA_DEBOUNCE_SEC:
+                state = self.state_store.load(chat_id)
+                if state and state.stage == "collecting_media":
+                    n_photos = len(state.photo_paths)
+                    n_videos = len(state.video_paths)
+                    summary = []
+                    if n_photos:
+                        summary.append(f"사진 {n_photos}장")
+                    if n_videos:
+                        summary.append(f"영상 {n_videos}개")
+                    media_text = ", ".join(summary) if summary else "미디어"
+                    self.api.send_message(
+                        chat_id,
+                        f"모든 사진과 영상 저장을 완료했습니다! ({media_text})\n아래 인터뷰 시작 버튼을 눌러주세요.",
+                        reply_markup=self._interview_start_button(),
+                    )
+                self._media_debounce_notified.add(chat_id)
+                done.append(chat_id)
+        for chat_id in done:
+            self._media_debounce.pop(chat_id, None)
+
     def handle_update(self, update: dict[str, Any]) -> None:
+        if not self.state_store.claim_update(update.get("update_id")):
+            return
+
         # Handle button clicks (callback_query)
         if "callback_query" in update:
             self._handle_callback_query(update["callback_query"])
@@ -254,10 +322,25 @@ class TelegramIntakeLoop:
     def _interview_button(self) -> dict:
         return {"inline_keyboard": [[{"text": "🎤 인터뷰하기", "callback_data": "interview"}]]}
 
+    def _interview_start_button(self) -> dict:
+        return {"inline_keyboard": [[{"text": "🎤 인터뷰 시작", "callback_data": "interview"}]]}
+
     def _confirm_answer_buttons(self) -> dict:
         return {"inline_keyboard": [[
             {"text": "✅ 확인", "callback_data": "confirm_answer"},
             {"text": "🔄 다시 녹음", "callback_data": "retry_answer"},
+        ]]}
+
+    def _instagram_approval_buttons(self) -> dict:
+        return {"inline_keyboard": [[
+            {"text": "📷 인스타그램 업로드", "callback_data": "approve_instagram"},
+            {"text": "건너뛰기", "callback_data": "skip_instagram"},
+        ]]}
+
+    def _threads_approval_buttons(self) -> dict:
+        return {"inline_keyboard": [[
+            {"text": "🧵 Threads 업로드", "callback_data": "approve_threads"},
+            {"text": "건너뛰기", "callback_data": "skip_threads"},
         ]]}
 
     # ---- Callback query handler ----
@@ -281,6 +364,14 @@ class TelegramIntakeLoop:
             self._confirm_pending_answer(shop, chat_id)
         elif data == "retry_answer":
             self._retry_pending_answer(shop, chat_id)
+        elif data == "approve_instagram":
+            self._publish_to_instagram(shop, chat_id)
+        elif data == "skip_instagram":
+            self._skip_instagram(shop, chat_id)
+        elif data == "approve_threads":
+            self._publish_to_threads(shop, chat_id)
+        elif data == "skip_threads":
+            self._skip_threads(shop, chat_id)
 
     # ---- Begin flow ----
 
@@ -306,19 +397,15 @@ class TelegramIntakeLoop:
         if bound_shop and not invite_token:
             # Re-entered — check if active session exists
             state = self.state_store.load(chat_id)
-            if state and state.stage not in ("completed",):
+            if state and state.stage not in ("completed", "awaiting_instagram_approval", "awaiting_threads_approval"):
                 self.api.send_message(chat_id, f"진행 중인 세션이 있어요. 사진/영상을 보내거나 아래 버튼을 눌러주세요.", reply_markup=self._interview_button())
             else:
                 self._do_begin(bound_shop, chat_id)
             return
 
         if bound_shop and invite_token:
-            # Already bound — just start new session
-            state = self.state_store.load(chat_id)
-            if state and state.stage not in ("completed",):
-                self.api.send_message(chat_id, f"진행 중인 세션이 있어요. 사진/영상을 보내거나 아래 버튼을 눌러주세요.", reply_markup=self._interview_button())
-            else:
-                self._do_begin(bound_shop, chat_id)
+            # A deep-linked /start is treated as an explicit fresh start request.
+            self._do_begin(bound_shop, chat_id)
             return
 
         if not invite_token:
@@ -364,11 +451,9 @@ class TelegramIntakeLoop:
             message_type="photo",
             file_paths=[str(saved_path)],
         )
-        self.api.send_message(
-            chat_id,
-            f"사진 저장 완료 ({len(state.photo_paths)}장). 다 보내셨으면 아래 버튼을 눌러주세요.",
-            reply_markup=self._interview_button(),
-        )
+        self.api.send_message(chat_id, f"사진 저장 완료 ({len(state.photo_paths)}장)")
+        self._media_debounce[chat_id] = time.monotonic()
+        self._media_debounce_notified.discard(chat_id)
 
     MAX_VIDEO_DURATION_SEC = 60
 
@@ -398,11 +483,9 @@ class TelegramIntakeLoop:
             message_type="video",
             file_paths=[str(saved_path)],
         )
-        self.api.send_message(
-            chat_id,
-            f"영상 저장 완료 ({len(state.video_paths)}개). 다 보내셨으면 아래 버튼을 눌러주세요.",
-            reply_markup=self._interview_button(),
-        )
+        self.api.send_message(chat_id, f"영상 저장 완료 ({len(state.video_paths)}개)")
+        self._media_debounce[chat_id] = time.monotonic()
+        self._media_debounce_notified.discard(chat_id)
 
     def _handle_audio_message(self, shop: ShopConfig, chat_id: str, message: dict[str, Any]) -> None:
         state = self.state_store.load(chat_id)
@@ -410,7 +493,7 @@ class TelegramIntakeLoop:
             self.api.send_message(chat_id, "현재는 인터뷰 답변을 받을 단계가 아닙니다. /status 로 상태를 확인해주세요.")
             return
 
-        self.api.send_message(chat_id, "음성을 처리하고 있어요...")
+        self.api.send_message(chat_id, "전사중 ...")
 
         file_id = (message.get("voice") or message.get("audio"))["file_id"]
         turn_index = self._stage_to_turn_index(state.stage)
@@ -432,10 +515,11 @@ class TelegramIntakeLoop:
                     f"음성 전사에 실패했습니다: {exc}\n같은 답변을 텍스트로 한 번만 보내주세요.",
                 )
                 return
-            # Save pending answer and ask for confirmation
+            # Show transcribed text, then ask for confirmation
             state.pending_answer = result.text
             state.stage = f"confirming_turn{turn_index}"
             self.state_store.save(state)
+            self.api.send_message(chat_id, result.text)
             self.api.send_message(
                 chat_id,
                 "이 답변으로 제출하시겠어요?",
@@ -562,23 +646,73 @@ class TelegramIntakeLoop:
                 "모든 답변이 제출되었어요.",
                 "인터뷰에 응해주셔서 감사드립니다!",
                 "",
-                "곧 콘텐츠를 만들어서 보내드리도록 하겠습니다!",
+                "콘텐츠를 생성하고 있어요...",
             ]),
         )
 
         transcript_artifacts = [self._transcript_from_dict(item) for item in state.transcripts]
+        photo_assets = [self._media_from_dict(item) for item in state.photo_assets]
+        video_assets = [self._media_from_dict(item) for item in state.video_assets]
+        turn2_planner = self._planner_from_dict(state.turn2_planner)
+        turn3_planner = self._planner_from_dict(state.turn3_planner)
+
         content_bundle_path, blog_article_path, publish_result_path = self.pipeline.finalize_session(
             artifacts=artifacts,
             shop=shop,
-            photo_assets=[self._media_from_dict(item) for item in state.photo_assets],
-            video_assets=[self._media_from_dict(item) for item in state.video_assets],
+            photo_assets=photo_assets,
+            video_assets=video_assets,
             preflight=state.preflight or {},
             transcript_artifacts=transcript_artifacts,
-            turn2_planner=self._planner_from_dict(state.turn2_planner),
-            turn3_planner=self._planner_from_dict(state.turn3_planner),
+            turn2_planner=turn2_planner,
+            turn3_planner=turn3_planner,
         )
+
+        # Generate Instagram caption and offer upload
+        if self.instagram_publisher and photo_assets:
+            try:
+                caption = self.instagram_caption_composer.compose(
+                    shop=shop,
+                    photos=photo_assets,
+                    transcripts=transcript_artifacts,
+                    turn2_planner=turn2_planner,
+                    turn3_planner=turn3_planner,
+                )
+                state.instagram_caption = caption
+                state.stage = "awaiting_instagram_approval"
+                self.state_store.save(state)
+
+                # Save caption to artifacts
+                from thohago.artifacts import write_text as _write_text
+                _write_text(
+                    Path(state.generated_dir) / "instagram_caption.txt",
+                    caption,
+                )
+
+                # Send preview to user
+                preview_msg = "\n".join([
+                    "블로그 글이 생성되었습니다!",
+                    "",
+                    "--- 인스타그램 캡션 미리보기 ---",
+                    "",
+                    caption,
+                    "",
+                    "---",
+                    "",
+                    f"사진 {len(photo_assets)}장으로 캐러셀을 업로드할까요?",
+                ])
+                self.api.send_message(chat_id, preview_msg, reply_markup=self._instagram_approval_buttons())
+                return
+            except Exception as exc:
+                print(f"[bot] Instagram caption generation failed: {exc}")
+                self.api.send_message(chat_id, f"인스타그램 캡션 생성에 실패했습니다: {exc}")
+
+        # No Instagram publisher configured or caption failed — complete
         state.stage = "completed"
         self.state_store.save(state)
+        self.api.send_message(
+            chat_id,
+            "인터뷰에 응해주셔서 감사드립니다! 콘텐츠 생성이 완료되었어요.",
+        )
 
     def _retry_pending_answer(self, shop: ShopConfig, chat_id: str) -> None:
         """User wants to re-record — go back to awaiting state."""
@@ -591,6 +725,196 @@ class TelegramIntakeLoop:
         state.stage = f"awaiting_turn{turn_index}_answer"
         self.state_store.save(state)
         self.api.send_message(chat_id, "답변을 다시 보내주세요. 음성 또는 텍스트 모두 가능합니다.")
+
+    def _caption_looks_corrupted(self, text: str) -> bool:
+        if not text.strip():
+            return True
+        if "??" in text or "\ufffd" in text:
+            return True
+        hangul_count = len(re.findall(r"[\u3131-\u318E\uAC00-\uD7A3]", text))
+        question_count = text.count("?")
+        return question_count >= 5 and hangul_count == 0
+
+    def _refresh_instagram_caption(self, shop: ShopConfig, state: TelegramSessionState) -> str:
+        photo_assets = [self._media_from_dict(item) for item in state.photo_assets]
+        transcript_artifacts = [self._transcript_from_dict(item) for item in state.transcripts]
+        turn2_planner = self._planner_from_dict(state.turn2_planner)
+        turn3_planner = self._planner_from_dict(state.turn3_planner)
+        caption = self.instagram_caption_composer.compose(
+            shop=shop,
+            photos=photo_assets,
+            transcripts=transcript_artifacts,
+            turn2_planner=turn2_planner,
+            turn3_planner=turn3_planner,
+        )
+        state.instagram_caption = caption
+        self.state_store.save(state)
+        write_text(Path(state.generated_dir) / "instagram_caption.txt", caption)
+        return caption
+
+    def _publish_to_instagram(self, shop: ShopConfig, chat_id: str) -> None:
+        """User approved — upload carousel to Instagram."""
+        state = self.state_store.load(chat_id)
+        if not state or state.stage != "awaiting_instagram_approval":
+            self.api.send_message(chat_id, "인스타그램 업로드 대기 상태가 아닙니다.")
+            return
+        if not self.instagram_publisher:
+            self.api.send_message(chat_id, "인스타그램 연동이 설정되지 않았습니다.")
+            state.stage = "completed"
+            self.state_store.save(state)
+            return
+
+        self.api.send_message(chat_id, "인스타그램에 업로드 중입니다... 잠시만 기다려주세요.")
+
+        photo_assets = [self._media_from_dict(item) for item in state.photo_assets]
+        image_paths = [asset.source_path for asset in photo_assets if asset.selected_for_prompt]
+        if not image_paths:
+            image_paths = [asset.source_path for asset in photo_assets]
+
+        caption = state.instagram_caption or ""
+        if self._caption_looks_corrupted(caption):
+            try:
+                caption = self._refresh_instagram_caption(shop, state)
+            except Exception as exc:
+                print(f"[bot] Instagram caption refresh failed: {exc}")
+                self.api.send_message(chat_id, f"인스타그램 캡션 재생성에 실패했습니다: {exc}")
+                return
+
+        try:
+            if len(image_paths) >= 2:
+                result = self.instagram_publisher.publish_carousel(image_paths, caption)
+            else:
+                result = self.instagram_publisher.publish_single_image(image_paths[0], caption)
+
+            # Save result
+            publish_result_path = Path(state.published_dir) / "instagram_publish_result.json"
+            write_json(publish_result_path, result)
+
+            permalink = result.get("permalink", "")
+            self.api.send_message(
+                chat_id,
+                "\n".join([
+                    "인스타그램 업로드가 완료되었습니다!",
+                    f"게시물 링크: {permalink}" if permalink else "게시물이 성공적으로 업로드되었습니다.",
+                ]),
+            )
+        except InstagramPublishError as exc:
+            self.api.send_message(chat_id, f"인스타그램 업로드에 실패했습니다: {exc}")
+        except Exception as exc:
+            self.api.send_message(chat_id, f"업로드 중 오류가 발생했습니다: {exc}")
+
+        self._offer_threads_upload(shop, chat_id, state)
+
+    def _skip_instagram(self, shop: ShopConfig, chat_id: str) -> None:
+        """User chose to skip Instagram upload."""
+        state = self.state_store.load(chat_id)
+        if not state or state.stage != "awaiting_instagram_approval":
+            return
+        self._offer_threads_upload(shop, chat_id, state)
+
+    def _offer_threads_upload(self, shop: ShopConfig, chat_id: str, state: TelegramSessionState) -> None:
+        """After Instagram step, offer Threads upload if configured."""
+        if not self.threads_publisher:
+            state.stage = "completed"
+            self.state_store.save(state)
+            self.api.send_message(chat_id, "모든 콘텐츠 발행이 완료되었습니다!")
+            return
+
+        photo_assets = [self._media_from_dict(item) for item in state.photo_assets]
+        transcript_artifacts = [self._transcript_from_dict(item) for item in state.transcripts]
+        turn2_planner = self._planner_from_dict(state.turn2_planner)
+        turn3_planner = self._planner_from_dict(state.turn3_planner)
+
+        try:
+            caption = self.threads_caption_composer.compose(
+                shop=shop,
+                photos=photo_assets,
+                transcripts=transcript_artifacts,
+                turn2_planner=turn2_planner,
+                turn3_planner=turn3_planner,
+            )
+            state.threads_caption = caption
+            state.stage = "awaiting_threads_approval"
+            self.state_store.save(state)
+
+            from thohago.artifacts import write_text as _write_text
+            _write_text(
+                Path(state.generated_dir) / "threads_caption.txt",
+                caption,
+            )
+
+            preview_msg = "\n".join([
+                "--- Threads 캡션 미리보기 ---",
+                "",
+                caption,
+                "",
+                "---",
+                "",
+                "Threads에 업로드할까요?",
+            ])
+            self.api.send_message(chat_id, preview_msg, reply_markup=self._threads_approval_buttons())
+        except Exception as exc:
+            print(f"[bot] Threads caption generation failed: {exc}")
+            state.stage = "completed"
+            self.state_store.save(state)
+            self.api.send_message(chat_id, f"Threads 캡션 생성에 실패했습니다. 콘텐츠 발행이 완료되었습니다.")
+
+    def _publish_to_threads(self, shop: ShopConfig, chat_id: str) -> None:
+        """User approved — upload to Threads."""
+        state = self.state_store.load(chat_id)
+        if not state or state.stage != "awaiting_threads_approval":
+            self.api.send_message(chat_id, "Threads 업로드 대기 상태가 아닙니다.")
+            return
+        if not self.threads_publisher:
+            state.stage = "completed"
+            self.state_store.save(state)
+            return
+
+        self.api.send_message(chat_id, "Threads에 업로드 중입니다... 잠시만 기다려주세요.")
+
+        photo_assets = [self._media_from_dict(item) for item in state.photo_assets]
+        image_paths = [asset.source_path for asset in photo_assets if asset.selected_for_prompt]
+        if not image_paths:
+            image_paths = [asset.source_path for asset in photo_assets]
+
+        caption = state.threads_caption or ""
+
+        try:
+            if len(image_paths) >= 2:
+                result = self.threads_publisher.publish_carousel(image_paths, caption)
+            elif len(image_paths) == 1:
+                result = self.threads_publisher.publish_single_image(image_paths[0], caption)
+            else:
+                result = self.threads_publisher.publish_text(caption)
+
+            publish_result_path = Path(state.published_dir) / "threads_publish_result.json"
+            write_json(publish_result_path, result)
+
+            permalink = result.get("permalink", "")
+            self.api.send_message(
+                chat_id,
+                "\n".join([
+                    "Threads 업로드가 완료되었습니다!",
+                    f"게시물 링크: {permalink}" if permalink else "게시물이 성공적으로 업로드되었습니다.",
+                ]),
+            )
+        except ThreadsPublishError as exc:
+            self.api.send_message(chat_id, f"Threads 업로드에 실패했습니다: {exc}")
+        except Exception as exc:
+            self.api.send_message(chat_id, f"업로드 중 오류가 발생했습니다: {exc}")
+
+        state.stage = "completed"
+        self.state_store.save(state)
+        self.api.send_message(chat_id, "모든 콘텐츠 발행이 완료되었습니다!")
+
+    def _skip_threads(self, shop: ShopConfig, chat_id: str) -> None:
+        """User chose to skip Threads upload."""
+        state = self.state_store.load(chat_id)
+        if not state or state.stage != "awaiting_threads_approval":
+            return
+        state.stage = "completed"
+        self.state_store.save(state)
+        self.api.send_message(chat_id, "모든 콘텐츠 발행이 완료되었습니다!")
 
     def _start_interview(self, shop: ShopConfig, chat_id: str) -> None:
         state = self.state_store.load(chat_id)
@@ -663,6 +987,8 @@ class TelegramIntakeLoop:
             turn2_planner=None,
             turn3_planner=None,
             pending_answer=None,
+            instagram_caption=None,
+            threads_caption=None,
         )
         write_json(Path(state.artifact_dir) / "session_metadata.json", {
             "shop_id": shop.shop_id,
@@ -834,6 +1160,47 @@ def start_bot() -> int:
             transcriber=GroqTranscriptionProvider(groq_client, config.groq_stt_model),
         )
         provider_label = f"groq:{config.groq_vision_model}+{config.groq_stt_model}"
+    # Instagram publisher (optional — only if credentials are configured)
+    # NOTE: 자동 업로드 기능 임시 비활성화 (수동 재활성화 필요)
+    ig_publisher = None
+    # if config.instagram_access_token and config.instagram_business_account_id and config.facebook_page_id:
+    #     try:
+    #         candidate = InstagramGraphPublisher(
+    #             access_token=config.instagram_access_token,
+    #             ig_user_id=config.instagram_business_account_id,
+    #             fb_page_id=config.facebook_page_id,
+    #             graph_version=config.instagram_graph_version,
+    #         )
+    #         candidate.validate_access()
+    #         ig_publisher = candidate
+    #         print(f"Instagram publisher enabled: ig_user={config.instagram_business_account_id}")
+    #     except InstagramPublishError as exc:
+    #         print(f"Instagram publisher disabled (auth/permission check failed: {exc})")
+    # else:
+    #     print("Instagram publisher disabled (missing GRAPH_META_ACCESS_TOKEN / INSTAGRAM_BUSINESS_ACCOUNT_ID / FACEBOOK_PAGE_ID)")
+    print("Instagram publisher disabled (자동 업로드 임시 비활성화)")
+
+    # Threads publisher (optional)
+    # NOTE: 자동 업로드 기능 임시 비활성화 (수동 재활성화 필요)
+    threads_pub = None
+    # if config.threads_access_token and config.threads_user_id and config.facebook_page_id:
+    #     try:
+    #         candidate = ThreadsPublisher(
+    #             access_token=config.threads_access_token,
+    #             threads_user_id=config.threads_user_id,
+    #             fb_page_id=config.facebook_page_id,
+    #             fb_page_upload_token=config.instagram_access_token,
+    #             graph_version=config.instagram_graph_version,
+    #         )
+    #         candidate.validate_access()
+    #         threads_pub = candidate
+    #         print(f"Threads publisher enabled: user={config.threads_user_id}")
+    #     except ThreadsPublishError as exc:
+    #         print(f"Threads publisher disabled (auth/permission check failed: {exc})")
+    # else:
+    #     print("Threads publisher disabled (missing THREADS_ACCESS_TOKEN / THREADS_USER_ID / FACEBOOK_PAGE_ID)")
+    print("Threads publisher disabled (자동 업로드 임시 비활성화)")
+
     loop = TelegramIntakeLoop(
         api=api,
         artifact_root=config.artifact_root,
@@ -842,6 +1209,8 @@ def start_bot() -> int:
         pipeline=pipeline,
         fallback_pipeline=fallback_pipeline,
         final_fallback_pipeline=final_fallback_pipeline,
+        instagram_publisher=ig_publisher,
+        threads_publisher=threads_pub,
     )
     print(f"Telegram intake loop started. provider={provider_label} fallback={fallback_label} final=heuristic")
     return loop.run_forever()

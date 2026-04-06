@@ -1,0 +1,363 @@
+{
+  "version": "1.0",
+  "source": {
+    "blog_path": "C:\\Users\\User\\Desktop\\Thohago_branding\\client\\sisun8082\\2026_03_27\\interview\\blog.md",
+    "shop_id": "sisun8082",
+    "session_id": "2026_03_27",
+    "main_angle": "필리핀 관광객 5명이 한국 오기 전부터 예약하고 부산 여행 중 함께 받은 헤드스파 경험"
+  },
+  "global_arc": {
+    "summary": "사전 예약이라는 호기심 -> 진단 기반 시작 -> 동시 케어 증거 -> K-뷰티 반응 피크 -> 여행 동선 CTA",
+    "emotion_curve": [
+      "curiosity",
+      "trust",
+      "anticipation",
+      "immersion",
+      "delight_peak",
+      "calm_close"
+    ],
+    "target_duration_sec": 23.8
+  },
+  "asset_inventory": {
+    "videos": [
+      {
+        "asset_id": "video_02",
+        "label": "상담/단체 맥락 7.0초 가로 영상",
+        "duration_sec": 7.035,
+        "orientation": "horizontal"
+      },
+      {
+        "asset_id": "video_01",
+        "label": "LED 돔/힐링 무드 13.3초 세로 영상",
+        "duration_sec": 13.308,
+        "orientation": "vertical"
+      }
+    ],
+    "photos": [
+      {
+        "asset_id": "photo_01",
+        "label": "2인 동시 시술 와이드"
+      },
+      {
+        "asset_id": "photo_02",
+        "label": "싱글 체어 릴렉스"
+      },
+      {
+        "asset_id": "photo_03",
+        "label": "캔들 옆 집중 케어"
+      },
+      {
+        "asset_id": "photo_04",
+        "label": "LED 돔 테라피"
+      },
+      {
+        "asset_id": "photo_05",
+        "label": "거울 앞 상담"
+      }
+    ]
+  },
+  "timing_policy": {
+    "tts_policy": {
+      "mode": "global_uniform_speed",
+      "do_not_change_speed_per_beat": true,
+      "preferred_speed_range": [
+        1.0,
+        1.25
+      ],
+      "fallback_if_too_long": [
+        "extend_photo_hold",
+        "split_long_video_across_more_beats",
+        "insert_quote_card"
+      ]
+    },
+    "visual_adjustment_policy": {
+      "prefer_adjustment_order": [
+        "photo_hold",
+        "photo_ken_burns_strength_up",
+        "video_trim_extension",
+        "quote_overlay_hold"
+      ],
+      "avoid": [
+        "per_beat_tts_speed_change",
+        "final_mix_stage_time_stretch"
+      ]
+    }
+  },
+  "beats": [
+    {
+      "beat_id": "b01",
+      "name": "hook",
+      "emotion_role": "curiosity",
+      "goal": "필리핀 손님 5명이 한국 오기 전부터 예약하고 왔다는 사실을 바로 이해시키기",
+      "message_focus": "필리핀 관광객 5명이 한국 오기 전부터 예약했다",
+      "target_duration_sec": 2.8,
+      "voiceover_draft": "필리핀에서 온 다섯 분이 한국 오기 전부터 예약하고 찾아온 서면 헤드스파.",
+      "overlay_draft": [
+        "필리핀 손님 5명이",
+        "한국 오기 전부터 예약"
+      ],
+      "asset_allocations": [
+        {
+          "slot_id": "b01_s01",
+          "asset_id": "video_02",
+          "asset_type": "video",
+          "role": "primary",
+          "source_in_sec": 0.6,
+          "source_out_sec": 2.8,
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 2.2,
+          "processing": {
+            "method": "horizontal_to_vertical",
+            "framing": "center_group"
+          }
+        },
+        {
+          "slot_id": "b01_s02",
+          "asset_id": "photo_05",
+          "asset_type": "photo",
+          "role": "bridge",
+          "timeline_in_beat_sec": 2.2,
+          "timeline_out_beat_sec": 2.8,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_push_in",
+            "anchor": "center",
+            "scale_from": 1.0,
+            "scale_to": 1.04
+          }
+        }
+      ],
+      "timing_adjustment_note": "hook 길이가 모자라면 photo_05 hold를 0.4~0.8초까지 늘린다"
+    },
+    {
+      "beat_id": "b02",
+      "name": "setup",
+      "emotion_role": "trust",
+      "goal": "진단 기반 맞춤 추천으로 전문성을 붙이기",
+      "message_focus": "도착 후 두피 진단과 맞춤 추천으로 시작한다",
+      "target_duration_sec": 3.0,
+      "voiceover_draft": "도착하자마자 두피를 먼저 보고, 상태에 맞는 코스를 추천받습니다.",
+      "overlay_draft": [
+        "도착 후 바로",
+        "두피 진단부터"
+      ],
+      "asset_allocations": [
+        {
+          "slot_id": "b02_s01",
+          "asset_id": "photo_05",
+          "asset_type": "photo",
+          "role": "primary",
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 1.6,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_push_in",
+            "anchor": "center",
+            "scale_from": 1.02,
+            "scale_to": 1.08
+          }
+        },
+        {
+          "slot_id": "b02_s02",
+          "asset_id": "video_02",
+          "asset_type": "video",
+          "role": "support",
+          "source_in_sec": 2.8,
+          "source_out_sec": 4.2,
+          "timeline_in_beat_sec": 1.6,
+          "timeline_out_beat_sec": 3.0,
+          "processing": {
+            "method": "horizontal_to_vertical",
+            "framing": "consultation_detail"
+          }
+        }
+      ],
+      "timing_adjustment_note": "voiceover가 조금 길면 photo_05 hold를 먼저 늘리고, 부족하면 video_02 trim을 0.3~0.5초 확장한다"
+    },
+    {
+      "beat_id": "b03",
+      "name": "proof_group",
+      "emotion_role": "anticipation",
+      "goal": "5명 동시 케어가 가능한 공간과 분위기를 실제로 보여주기",
+      "message_focus": "친구끼리 나란히 받는 경험 자체가 차별점이다",
+      "target_duration_sec": 4.0,
+      "voiceover_draft": "친구끼리 나란히 누워 같이 받는 순간, 분위기 자체가 달라집니다.",
+      "overlay_draft": [
+        "5명 동시 케어 가능한 공간"
+      ],
+      "asset_allocations": [
+        {
+          "slot_id": "b03_s01",
+          "asset_id": "photo_01",
+          "asset_type": "photo",
+          "role": "primary",
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 2.5,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_pan_right",
+            "anchor": "left",
+            "scale_from": 1.02,
+            "scale_to": 1.1
+          }
+        },
+        {
+          "slot_id": "b03_s02",
+          "asset_id": "video_02",
+          "asset_type": "video",
+          "role": "support",
+          "source_in_sec": 4.2,
+          "source_out_sec": 5.7,
+          "timeline_in_beat_sec": 2.5,
+          "timeline_out_beat_sec": 4.0,
+          "processing": {
+            "method": "horizontal_to_vertical",
+            "framing": "group_context_tail"
+          }
+        }
+      ],
+      "timing_adjustment_note": "이 beat은 영상보다 분위기 proof가 중요하므로, 길이 보정은 photo_01에서 먼저 한다"
+    },
+    {
+      "beat_id": "b04",
+      "name": "proof_detail",
+      "emotion_role": "immersion",
+      "goal": "스팀캡, 캔들, LED 등 실제 케어 디테일을 붙여 경험 밀도를 올리기",
+      "message_focus": "한국식 헤드스파의 디테일과 장비가 실제 경험을 만든다",
+      "target_duration_sec": 4.8,
+      "voiceover_draft": "스팀캡과 집중 케어, 그리고 LED 테라피까지 이어지면서 한국식 헤드스파의 디테일이 살아납니다.",
+      "overlay_draft": [
+        "스팀캡 + LED + 맞춤 케어"
+      ],
+      "asset_allocations": [
+        {
+          "slot_id": "b04_s01",
+          "asset_id": "photo_03",
+          "asset_type": "photo",
+          "role": "opener",
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 1.2,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_push_in",
+            "anchor": "center",
+            "scale_from": 1.0,
+            "scale_to": 1.06
+          }
+        },
+        {
+          "slot_id": "b04_s02",
+          "asset_id": "video_01",
+          "asset_type": "video",
+          "role": "primary",
+          "source_in_sec": 1.0,
+          "source_out_sec": 4.6,
+          "timeline_in_beat_sec": 1.2,
+          "timeline_out_beat_sec": 4.8,
+          "processing": {
+            "method": "direct_use",
+            "framing": "vertical_led_proof"
+          }
+        }
+      ],
+      "timing_adjustment_note": "증거 beat는 video_01을 중심으로 두고, 문장이 길어지면 photo_03 opener를 늘려 buffer로 쓴다"
+    },
+    {
+      "beat_id": "b05",
+      "name": "reaction_peak",
+      "emotion_role": "delight_peak",
+      "goal": "외국인 고객의 리액션을 감정 피크로 만들기",
+      "message_focus": "K-뷰티 최고, 너무 시원하다는 반응이 나왔다",
+      "target_duration_sec": 5.0,
+      "voiceover_draft": "받아보신 뒤엔 K-뷰티 최고, 너무 시원하다는 반응이 바로 나왔어요.",
+      "overlay_draft": [
+        "\"K-뷰티는 최고다\"",
+        "\"너무 시원하다\""
+      ],
+      "asset_allocations": [
+        {
+          "slot_id": "b05_s01",
+          "asset_id": "video_01",
+          "asset_type": "video",
+          "role": "primary",
+          "source_in_sec": 4.6,
+          "source_out_sec": 8.0,
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 3.4,
+          "processing": {
+            "method": "direct_use",
+            "framing": "vertical_relax_peak"
+          }
+        },
+        {
+          "slot_id": "b05_s02",
+          "asset_id": "photo_04",
+          "asset_type": "photo",
+          "role": "quote_hold",
+          "timeline_in_beat_sec": 3.4,
+          "timeline_out_beat_sec": 5.0,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "subtle_pan_up",
+            "anchor": "center",
+            "scale_from": 1.0,
+            "scale_to": 1.05
+          }
+        }
+      ],
+      "timing_adjustment_note": "이 beat는 quote가 핵심이므로, 길이 보정은 photo_04 quote hold를 우선 늘린다"
+    },
+    {
+      "beat_id": "b06",
+      "name": "afterglow_cta",
+      "emotion_role": "calm_close",
+      "goal": "여행 동선 CTA로 부드럽게 마무리하기",
+      "message_focus": "부산 여행 중 서면에서 쉬어가기 좋은 헤드스파",
+      "target_duration_sec": 4.2,
+      "voiceover_draft": "부산 여행 중 서면에서 쉬어가고 싶다면, 시선을 즐기다에서 직접 느껴보세요.",
+      "overlay_draft": [
+        "부산 여행 중",
+        "서면에서 쉬어가기 좋은 헤드스파"
+      ],
+      "asset_allocations": [
+        {
+          "slot_id": "b06_s01",
+          "asset_id": "video_01",
+          "asset_type": "video",
+          "role": "bridge",
+          "source_in_sec": 8.0,
+          "source_out_sec": 9.4,
+          "timeline_in_beat_sec": 0.0,
+          "timeline_out_beat_sec": 1.4,
+          "processing": {
+            "method": "direct_use",
+            "framing": "vertical_afterglow"
+          }
+        },
+        {
+          "slot_id": "b06_s02",
+          "asset_id": "photo_02",
+          "asset_type": "photo",
+          "role": "primary",
+          "timeline_in_beat_sec": 1.4,
+          "timeline_out_beat_sec": 4.2,
+          "processing": {
+            "method": "ken_burns",
+            "preset": "slow_pull_out",
+            "anchor": "center",
+            "scale_from": 1.06,
+            "scale_to": 1.0
+          }
+        }
+      ],
+      "timing_adjustment_note": "끝 beat는 차분한 잔향이 중요하므로 photo_02 hold를 충분히 확보한다"
+    }
+  ],
+  "summary_notes": [
+    "하나의 영상 소스는 여러 beat에 나뉘어 배정될 수 있다.",
+    "video_02는 b01~b03에 분할 사용된다.",
+    "video_01은 b04~b06에 분할 사용된다.",
+    "사진은 beat 길이 보정과 감정 호흡 조절에 사용된다.",
+    "TTS는 beat 이후가 아니라 beat와 같이 설계하되, 최종 길이 보정은 영상 쪽에서 우선 처리한다."
+  ]
+}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p class="eyebrow">Offline</p>
+<h1>Connection Lost</h1>
+<p class="lede">
+    The Thohago shell is offline right now. Once your connection returns, reopen the same link to continue from the current session state.
+</p>
+
+<div class="notice error">
+    <strong>Offline Fallback</strong><br>
+    <span>This page is cached by the service worker as a minimal recovery shell.</span>
+</div>
+{% endblock %}

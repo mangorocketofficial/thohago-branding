@@ -1,0 +1,326 @@
+{
+  "version": "1.0",
+  "source": {
+    "shop_id": "sisun8082",
+    "session_id": "2026_03_27",
+    "story_map_id": "shorts_test_story_map_001",
+    "beat_sheet_id": "shorts_test_beat_sheet_001",
+    "target_duration_sec": 23.4
+  },
+  "timeline": [
+    {
+      "clip_id": "c01",
+      "beat_id": "b01",
+      "asset_type": "video",
+      "asset_id": "video_02",
+      "source_path": "client/sisun8082/2026_03_27/video/KakaoTalk_20260327_121623480.mp4",
+      "start_sec": 0.0,
+      "end_sec": 3.2,
+      "duration_sec": 3.2,
+      "trim": { "source_in_sec": 0.6, "source_out_sec": 3.8 },
+      "motion": {
+        "type": "crop_reframe",
+        "preset": "center_vertical",
+        "anchor": "center"
+      },
+      "transition_in": "hard_cut",
+      "transition_out": "soft_push",
+      "caption_ids": ["t01"]
+    },
+    {
+      "clip_id": "c02",
+      "beat_id": "b02",
+      "asset_type": "photo",
+      "asset_id": "photo_05",
+      "source_path": "client/sisun8082/2026_03_27/images/KakaoTalk_20260327_121540482_04.jpg",
+      "start_sec": 3.2,
+      "end_sec": 5.8,
+      "duration_sec": 2.6,
+      "trim": { "source_in_sec": null, "source_out_sec": null },
+      "motion": {
+        "type": "ken_burns",
+        "preset": "slow_push_in",
+        "anchor": "center",
+        "scale_from": 1.0,
+        "scale_to": 1.08
+      },
+      "transition_in": "soft_push",
+      "transition_out": "fade",
+      "caption_ids": ["t02"]
+    },
+    {
+      "clip_id": "c03",
+      "beat_id": "b03",
+      "asset_type": "photo",
+      "asset_id": "photo_01",
+      "source_path": "client/sisun8082/2026_03_27/images/KakaoTalk_20260327_121540482.jpg",
+      "start_sec": 5.8,
+      "end_sec": 8.2,
+      "duration_sec": 2.4,
+      "trim": { "source_in_sec": null, "source_out_sec": null },
+      "motion": {
+        "type": "ken_burns",
+        "preset": "slow_pan_right",
+        "anchor": "left",
+        "scale_from": 1.02,
+        "scale_to": 1.1
+      },
+      "transition_in": "fade",
+      "transition_out": "hard_cut",
+      "caption_ids": ["t03"]
+    },
+    {
+      "clip_id": "c04",
+      "beat_id": "b03",
+      "asset_type": "video",
+      "asset_id": "video_01",
+      "source_path": "client/sisun8082/2026_03_27/video/KakaoTalk_20260327_121601750.mp4",
+      "start_sec": 8.2,
+      "end_sec": 13.0,
+      "duration_sec": 4.8,
+      "trim": { "source_in_sec": 1.0, "source_out_sec": 5.8 },
+      "motion": {
+        "type": "none"
+      },
+      "transition_in": "hard_cut",
+      "transition_out": "soft_push",
+      "caption_ids": ["t04"]
+    },
+    {
+      "clip_id": "c05",
+      "beat_id": "b04",
+      "asset_type": "photo",
+      "asset_id": "photo_03",
+      "source_path": "client/sisun8082/2026_03_27/images/KakaoTalk_20260327_121540482_02.jpg",
+      "start_sec": 13.0,
+      "end_sec": 15.6,
+      "duration_sec": 2.6,
+      "trim": { "source_in_sec": null, "source_out_sec": null },
+      "motion": {
+        "type": "ken_burns",
+        "preset": "slow_push_in",
+        "anchor": "center",
+        "scale_from": 1.0,
+        "scale_to": 1.06
+      },
+      "transition_in": "soft_push",
+      "transition_out": "fade",
+      "caption_ids": ["t05"]
+    },
+    {
+      "clip_id": "c06",
+      "beat_id": "b04",
+      "asset_type": "photo",
+      "asset_id": "photo_04",
+      "source_path": "client/sisun8082/2026_03_27/images/KakaoTalk_20260327_121540482_03.jpg",
+      "start_sec": 15.6,
+      "end_sec": 18.8,
+      "duration_sec": 3.2,
+      "trim": { "source_in_sec": null, "source_out_sec": null },
+      "motion": {
+        "type": "ken_burns",
+        "preset": "subtle_pan_up",
+        "anchor": "center",
+        "scale_from": 1.0,
+        "scale_to": 1.05
+      },
+      "transition_in": "fade",
+      "transition_out": "hard_cut",
+      "caption_ids": ["t06"]
+    },
+    {
+      "clip_id": "c07",
+      "beat_id": "b05",
+      "asset_type": "photo",
+      "asset_id": "photo_02",
+      "source_path": "client/sisun8082/2026_03_27/images/KakaoTalk_20260327_121540482_01.jpg",
+      "start_sec": 18.8,
+      "end_sec": 23.4,
+      "duration_sec": 4.6,
+      "trim": { "source_in_sec": null, "source_out_sec": null },
+      "motion": {
+        "type": "ken_burns",
+        "preset": "slow_pull_out",
+        "anchor": "center",
+        "scale_from": 1.06,
+        "scale_to": 1.0
+      },
+      "transition_in": "hard_cut",
+      "transition_out": "fade",
+      "caption_ids": ["t07"]
+    }
+  ],
+  "text_overlays": [
+    {
+      "text_id": "t01",
+      "kind": "hook",
+      "text": "필리핀 손님 5명이 한국 오기 전부터 예약한 이유",
+      "start_sec": 0.0,
+      "end_sec": 2.8,
+      "position": "center",
+      "style_preset": "hook_bold",
+      "animation_in": "fade_up",
+      "animation_out": "fade_out"
+    },
+    {
+      "text_id": "t02",
+      "kind": "supporting",
+      "text": "도착하자마자 두피 진단부터",
+      "start_sec": 3.2,
+      "end_sec": 5.8,
+      "position": "top_center",
+      "style_preset": "label_minimal",
+      "animation_in": "fade_in",
+      "animation_out": "fade_out"
+    },
+    {
+      "text_id": "t03",
+      "kind": "supporting",
+      "text": "5명 동시 케어 가능한 공간",
+      "start_sec": 5.8,
+      "end_sec": 8.2,
+      "position": "bottom_center",
+      "style_preset": "supporting_soft",
+      "animation_in": "slide_up",
+      "animation_out": "fade_out"
+    },
+    {
+      "text_id": "t04",
+      "kind": "supporting",
+      "text": "스팀캡 + LED + 맞춤 케어",
+      "start_sec": 8.2,
+      "end_sec": 13.0,
+      "position": "bottom_center",
+      "style_preset": "supporting_soft",
+      "animation_in": "fade_in",
+      "animation_out": "fade_out"
+    },
+    {
+      "text_id": "t05",
+      "kind": "quote",
+      "text": "\"K-뷰티는 최고다\"",
+      "start_sec": 13.2,
+      "end_sec": 15.6,
+      "position": "center",
+      "style_preset": "quote_soft",
+      "animation_in": "fade_up",
+      "animation_out": "fade_out"
+    },
+    {
+      "text_id": "t06",
+      "kind": "quote",
+      "text": "\"너무 시원하다\"",
+      "start_sec": 15.8,
+      "end_sec": 18.8,
+      "position": "center",
+      "style_preset": "quote_soft",
+      "animation_in": "fade_up",
+      "animation_out": "fade_out"
+    },
+    {
+      "text_id": "t07",
+      "kind": "cta",
+      "text": "부산 여행 중 서면에서 쉬어가기 좋은 헤드스파",
+      "start_sec": 19.0,
+      "end_sec": 23.4,
+      "position": "bottom_center",
+      "style_preset": "cta_clean",
+      "animation_in": "slide_up",
+      "animation_out": "fade_out"
+    }
+  ],
+  "voiceover": {
+    "mode": "tts",
+    "script_blocks": [
+      {
+        "beat_id": "b01",
+        "text": "필리핀에서 온 다섯 분이 한국 오기 전부터 예약하고 찾아온 서면 헤드스파.",
+        "start_sec": 0.0,
+        "end_sec": 3.2,
+        "tone": "curious_warm"
+      },
+      {
+        "beat_id": "b02",
+        "text": "도착하자마자 두피 진단을 받고, 상태에 맞는 코스를 추천받습니다.",
+        "start_sec": 3.2,
+        "end_sec": 5.8,
+        "tone": "clear_explanatory"
+      },
+      {
+        "beat_id": "b03",
+        "text": "다섯 명이 함께 케어를 받고, 스팀캡과 LED 테라피까지 이어집니다.",
+        "start_sec": 5.8,
+        "end_sec": 13.0,
+        "tone": "steady_proof"
+      },
+      {
+        "beat_id": "b04",
+        "text": "받아보신 뒤엔 K뷰티 최고, 너무 시원하다는 반응이 바로 나왔어요.",
+        "start_sec": 13.0,
+        "end_sec": 18.8,
+        "tone": "warm_reaction"
+      },
+      {
+        "beat_id": "b05",
+        "text": "부산 여행 중 서면에서 쉬어가고 싶다면, 시선을 즐기다에서 직접 느껴보세요.",
+        "start_sec": 18.8,
+        "end_sec": 23.4,
+        "tone": "soft_cta"
+      }
+    ],
+    "subtitle_mode": "burned_in",
+    "subtitle_style": "clean_bottom"
+  },
+  "audio": {
+    "bgm": {
+      "mode": "library",
+      "mood": "quiet_premium",
+      "volume": 0.45,
+      "duck_under_voiceover": true
+    },
+    "original_audio": {
+      "use": false,
+      "volume": 0.0
+    },
+    "mixing": {
+      "normalize_output": true,
+      "peak_db": -1.0
+    }
+  },
+  "visual_effects": {
+    "color_grade": {
+      "preset": "warm_soft",
+      "intensity": 0.55
+    },
+    "vignette": {
+      "enabled": true,
+      "intensity": 0.15
+    },
+    "safe_zone": {
+      "top_pct": 15,
+      "bottom_pct": 20,
+      "side_pct": 8
+    }
+  },
+  "export": {
+    "aspect_ratio": "9:16",
+    "resolution": {
+      "width": 1080,
+      "height": 1920
+    },
+    "fps": 30,
+    "codec": "h264",
+    "video_bitrate": "8M",
+    "audio_codec": "aac",
+    "audio_bitrate": "192k",
+    "container": "mp4"
+  },
+  "validation": {
+    "max_duration_delta_sec": 0.5,
+    "require_hook_in_first_sec": true,
+    "max_text_chars_per_screen": 24,
+    "require_cta_in_last_sec": true,
+    "allow_empty_voiceover": false,
+    "require_min_clip_count": 6
+  }
+}
