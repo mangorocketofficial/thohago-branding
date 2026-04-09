@@ -11,15 +11,60 @@ from fastapi.testclient import TestClient
 
 from thohago.anthropic_live import AnthropicMultimodalInterviewEngine
 from thohago.config import load_config
+from thohago.gemini_live import GeminiMultimodalInterviewEngine
 from thohago.groq_live import GroqTranscriptionProvider
 from thohago.interview_engine import HeuristicMultimodalInterviewEngine
 from thohago.models import MediaAsset, PlannerOutput
 from thohago.registry import load_shop_registry
 from thohago.web.app import create_app
-from thohago.web.services.pipeline_runtime import resolve_engine
+from thohago.web.services.pipeline_runtime import OrderedFallbackInterviewEngine, resolve_engine
 
 
 class WebPhase10Tests(unittest.TestCase):
+    def test_auto_engine_prefers_gemini_then_groq(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            env = self._web_env(Path(tmp_dir), default_interview_engine="auto")
+            env["GEMINI_API_KEY"] = "phase10-gemini-key"
+            patcher = patch.dict(os.environ, env, clear=False)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+            config = load_config()
+            engine = resolve_engine(config)
+            self.assertIsInstance(engine, OrderedFallbackInterviewEngine)
+            self.assertIsInstance(engine.engines[0], GeminiMultimodalInterviewEngine)
+
+    def test_auto_engine_falls_back_to_groq_when_gemini_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            env = self._web_env(Path(tmp_dir), default_interview_engine="auto")
+            env["GEMINI_API_KEY"] = "phase10-gemini-key"
+            patcher = patch.dict(os.environ, env, clear=False)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+            config = load_config()
+            engine = resolve_engine(config)
+            self.assertIsInstance(engine, OrderedFallbackInterviewEngine)
+
+            primary, fallback = engine.engines
+            self.assertIsInstance(primary, GeminiMultimodalInterviewEngine)
+
+            with patch.object(primary, "plan_turn1", side_effect=RuntimeError("gemini failed")), patch.object(
+                fallback,
+                "plan_turn1",
+                return_value=PlannerOutput(
+                    turn_index=1,
+                    main_angle="groq fallback",
+                    covered_elements=[],
+                    missing_elements=[],
+                    question_strategy="scene_anchor",
+                    next_question="그록이 대신 만든 질문입니다.",
+                    evidence=["fallback"],
+                ),
+            ):
+                planner = engine.plan_turn1({"photos": []})
+            self.assertEqual(planner.next_question, "그록이 대신 만든 질문입니다.")
+
     def test_default_interview_engine_claude_overrides_groq_for_planning(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             env = self._web_env(Path(tmp_dir), default_interview_engine="claude")
@@ -182,6 +227,7 @@ class WebPhase10Tests(unittest.TestCase):
             "THOHAGO_SYNC_API_TOKEN": "phase10-sync-token",
             "THOHAGO_WEB_STT_MODE": "groq",
             "THOHAGO_DEFAULT_INTERVIEW_ENGINE": default_interview_engine,
+            "GEMINI_API_KEY": "",
             "GROQ_API_KEY": "phase10-groq-key",
             "CLAUDE_API_KEY": "phase10-claude-key",
             "ANTHROPIC_API_KEY": "",

@@ -220,6 +220,8 @@ class WebPhase2Tests(unittest.TestCase):
             "THOHAGO_ADMIN_USERNAME": "phase2-admin",
             "THOHAGO_ADMIN_PASSWORD": "phase2-password",
             "THOHAGO_SYNC_API_TOKEN": "phase2-sync-token",
+            "THOHAGO_DEFAULT_INTERVIEW_ENGINE": "heuristic",
+            "GEMINI_API_KEY": "",
             "GROQ_API_KEY": "",
             "ANTHROPIC_API_KEY": "",
             "CLAUDE_API_KEY": "",

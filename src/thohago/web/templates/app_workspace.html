@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="app-frame" data-app-frame>
+    <button type="button" class="app-sidebar-backdrop" data-sidebar-close aria-label="세션 목록 닫기"></button>
+    {% include "partials/app_sidebar.html" %}
+
+    <section class="app-main">
+        <header class="app-topbar">
+            <div class="app-topbar-left">
+                <button type="button" class="icon-button app-menu-button" data-sidebar-toggle aria-label="세션 목록 열기">
+                    <svg viewBox="0 0 24 24" class="icon-svg" focusable="false">
+                        <path d="M4 7h16"></path>
+                        <path d="M4 12h16"></path>
+                        <path d="M4 17h16"></path>
+                    </svg>
+                </button>
+                <div>
+                    <p class="eyebrow">메인 채팅</p>
+                    <h1>{{ user_name }}님의 작업 공간</h1>
+                </div>
+            </div>
+            <form method="post" action="/app/sessions/new" class="app-topbar-action">
+                <button type="submit">새 작업 시작</button>
+            </form>
+        </header>
+
+        <div class="app-main-scroll">
+            <section class="chat-thread chat-thread--wide" aria-label="작업 공간 대화">
+                <article class="chat-message">
+                    <div class="chat-avatar chat-avatar--assistant" aria-hidden="true">또</div>
+                    <div class="chat-bubble-stack">
+                        <p class="chat-label">시스템 안내</p>
+                        <div class="chat-bubble">
+                            <p>왼쪽 세션 목록에서 이어서 작업할 채팅을 선택하거나, 새 작업을 바로 시작할 수 있어요.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="chat-message">
+                    <div class="chat-avatar chat-avatar--assistant" aria-hidden="true">또</div>
+                    <div class="chat-bubble-stack">
+                        <p class="chat-label">현재 구조</p>
+                        <div class="chat-bubble">
+                            <p>이제 업로드, 인터뷰, 미리보기, 승인, 다운로드까지 모두 같은 채팅 셸 안에서 이어집니다.</p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="chat-rich-card app-welcome-card">
+                <div class="composer-head">
+                    <span class="stage-chip">시작하기</span>
+                    <h2>새 세션을 열거나 기존 세션을 선택하세요</h2>
+                </div>
+                <p class="lede compact">세션 목록은 데스크톱에서 항상 왼쪽에 보이고, 모바일에서는 좌측 상단 버튼으로 열 수 있습니다.</p>
+                <div class="download-actions">
+                    <form method="post" action="/app/sessions/new">
+                        <button type="submit">새 작업 시작</button>
+                    </form>
+                    <a href="/pricing" class="button-link button-link--secondary">요금 안내 보기</a>
+                </div>
+            </section>
+
+            {% if sessions %}
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">최근 세션</span>
+                    <h2>계속 진행할 작업</h2>
+                </div>
+                <div class="app-inline-session-list">
+                    {% for item in sessions[:4] %}
+                    <a href="/app/session/{{ item.id }}" class="session-card">
+                        <div class="project-card-top">
+                            <strong>{{ item.sidebar_label }}</strong>
+                            <span class="stage-chip">{{ item.stage_label }}</span>
+                        </div>
+                        <p>{{ item.sidebar_meta }}</p>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        const frame = document.querySelector("[data-app-frame]");
+        if (!frame) {
+            return;
+        }
+
+        const openButtons = frame.querySelectorAll("[data-sidebar-toggle]");
+        const closeButtons = frame.querySelectorAll("[data-sidebar-close]");
+
+        function openSidebar() {
+            frame.classList.add("is-sidebar-open");
+        }
+
+        function closeSidebar() {
+            frame.classList.remove("is-sidebar-open");
+        }
+
+        openButtons.forEach((button) => button.addEventListener("click", openSidebar));
+        closeButtons.forEach((button) => button.addEventListener("click", closeSidebar));
+    })();
+</script>
+{% endblock %}

@@ -57,6 +57,21 @@ class SyncService:
                     archive.write(path, arcname=path.relative_to(artifacts.artifact_dir).as_posix())
         return buffer.getvalue()
 
+    def build_customer_delivery_zip(self, session: SessionRecord) -> bytes:
+        artifacts = self.session_service.artifacts_for_session(session)
+        if not artifacts.published_dir.exists():
+            raise SyncValidationError("전달 가능한 결과 파일이 아직 준비되지 않았어요.")
+
+        published_files = [path for path in artifacts.published_dir.rglob("*") if path.is_file()]
+        if not published_files:
+            raise SyncValidationError("전달 가능한 결과 파일이 아직 준비되지 않았어요.")
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for path in published_files:
+                archive.write(path, arcname=path.relative_to(artifacts.artifact_dir).as_posix())
+        return buffer.getvalue()
+
     def apply_preview_upload(self, session: SessionRecord, *, manifest: dict, bundle_bytes: bytes) -> SessionRecord:
         if session.stage not in {"awaiting_production", "revision_requested", "awaiting_approval"}:
             raise SyncValidationError(f"Session is not ready for preview upload: {session.stage}")

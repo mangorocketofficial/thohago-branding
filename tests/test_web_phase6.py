@@ -114,10 +114,14 @@ class WebPhase6Tests(unittest.TestCase):
             self.assertEqual(updated.stage, "awaiting_turn2_answer")
 
             artifacts = app.state.runtime.session_service.artifacts_for_session(updated)
-            transcript_json_path = artifacts.transcripts_dir / "turn1_transcript.json"
-            self.assertTrue(transcript_json_path.exists())
-            transcript_payload = json.loads(transcript_json_path.read_text(encoding="utf-8"))
-            self.assertTrue(str(transcript_payload["source_path"]).endswith("turn1_audio.webm"))
+            self.assertEqual(list(artifacts.generated_dir.glob("interview_full_transcript_*.json")), [])
+            confirmed_answers = [
+                message
+                for message in app.state.runtime.session_repository.list_session_messages(session.id)
+                if message.sender == "customer" and message.message_type == "text" and message.turn_index == 1
+            ]
+            self.assertEqual(len(confirmed_answers), 1)
+            self.assertEqual(confirmed_answers[0].relative_path, "raw/turn1_audio.webm")
 
     def _post_audio(self, base_url: str, customer_token: str, payload: bytes, content_type: str, expect_error: bool = False) -> None:
         with httpx.Client(base_url=base_url, timeout=30) as client:
@@ -208,7 +212,9 @@ class WebPhase6Tests(unittest.TestCase):
             "THOHAGO_ADMIN_USERNAME": "phase6-admin",
             "THOHAGO_ADMIN_PASSWORD": "phase6-password",
             "THOHAGO_SYNC_API_TOKEN": "phase6-sync-token",
+            "THOHAGO_DEFAULT_INTERVIEW_ENGINE": "heuristic",
             "THOHAGO_WEB_STT_MODE": "stub",
+            "GEMINI_API_KEY": "",
             "GROQ_API_KEY": "",
             "ANTHROPIC_API_KEY": "",
             "CLAUDE_API_KEY": "",

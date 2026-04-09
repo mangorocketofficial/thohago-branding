@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import io
 import json
 import mimetypes
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 
 from fastapi import UploadFile
@@ -62,17 +66,24 @@ class UploadService:
         if not upload.filename:
             raise UploadValidationError("파일을 선택해 주세요.")
 
-        kind = self._detect_upload_kind(upload)
+        kind, detected_suffix = self._detect_upload_descriptor(upload)
         active_uploads = self.list_active_uploads(session)
         self._validate_upload_slot(kind=kind, active_uploads=active_uploads)
 
         artifacts = self.session_service.artifacts_for_session(session)
         index = self._next_available_index(kind, active_uploads)
-        suffix = self._resolve_suffix(upload.filename, upload.content_type)
+        suffix = self._resolve_suffix(upload.filename, upload.content_type, detected_suffix=detected_suffix)
         filename = f"{kind}_{index:02d}{suffix}"
         destination = artifacts.raw_dir / filename
 
         payload = await upload.read()
+        duration_sec = None
+        if kind == "video":
+            duration_sec = self._probe_video_duration_sec(payload=payload, suffix=suffix)
+            if duration_sec is not None and duration_sec > self.web_config.max_video_duration_sec:
+                raise UploadValidationError(
+                    f"영상은 한 클립당 최대 {self.web_config.max_video_duration_sec}초까지만 업로드할 수 있어요."
+                )
         destination.write_bytes(payload)
         relative_path = destination.relative_to(artifacts.artifact_dir).as_posix()
         mime_type = upload.content_type or mimetypes.guess_type(destination.name)[0]
@@ -85,6 +96,7 @@ class UploadService:
             relative_path=relative_path,
             mime_type=mime_type,
             file_size=len(payload),
+            duration_sec=duration_sec,
         )
         self.repository.insert_session_message(
             session_id=session.id,
@@ -137,7 +149,12 @@ class UploadService:
         self.session_service.write_session_metadata(session)
 
     def finalize_uploads(self, session: SessionRecord) -> SessionRecord:
-        self._ensure_collecting_media(session)
+        current_session = self.repository.get_by_id(session.id) or session
+        if current_session.stage != "collecting_media" and current_session.turn1_question:
+            return current_session
+
+        self._ensure_collecting_media(current_session)
+        session = current_session
         artifacts = self.session_service.artifacts_for_session(session)
         shop = self.session_service.get_shop(session)
         active_uploads = self.list_active_uploads(session)
@@ -147,7 +164,9 @@ class UploadService:
             raise UploadValidationError("사진을 한 장 이상 업로드해 주세요.")
 
         pipeline, engine = self._resolve_pipeline_and_engine()
-        preflight, _, _, _ = pipeline.prepare_media_artifacts(
+        preflight, engine = self._prepare_media_artifacts_with_fallback(
+            pipeline=pipeline,
+            engine=engine,
             artifacts=artifacts,
             shop=shop,
             photos=photo_paths,
@@ -166,23 +185,32 @@ class UploadService:
             preflight_json=json.dumps(preflight, ensure_ascii=False),
             turn1_question=planner.next_question,
         )
-        self.repository.insert_session_message(
-            session_id=session.id,
-            sender="system",
-            message_type="text",
-            turn_index=1,
-            text=planner.next_question,
-            metadata_json={"question_strategy": planner.question_strategy},
+        existing_messages = self.repository.list_session_messages(session.id)
+        already_recorded = any(
+            message.sender == "system"
+            and message.message_type == "text"
+            and message.turn_index == 1
+            and (message.text or "").strip() == planner.next_question.strip()
+            for message in existing_messages
         )
-        append_chat_log(
-            artifacts.chat_log_path,
-            session_id=updated_session.id,
-            shop_id=updated_session.shop_id,
-            sender="bot",
-            message_type="text",
-            text=planner.next_question,
-            metadata={"turn_index": 1, "planner_path": str(planner_path)},
-        )
+        if not already_recorded:
+            self.repository.insert_session_message(
+                session_id=session.id,
+                sender="system",
+                message_type="text",
+                turn_index=1,
+                text=planner.next_question,
+                metadata_json={"question_strategy": planner.question_strategy},
+            )
+            append_chat_log(
+                artifacts.chat_log_path,
+                session_id=updated_session.id,
+                shop_id=updated_session.shop_id,
+                sender="bot",
+                message_type="text",
+                text=planner.next_question,
+                metadata={"turn_index": 1, "planner_path": str(planner_path)},
+            )
         self.session_service.write_session_metadata(updated_session)
         return updated_session
 
@@ -193,7 +221,8 @@ class UploadService:
             fallback_engine = HeuristicMultimodalInterviewEngine()
             planner = fallback_engine.plan_turn1(preflight)
             engine = fallback_engine
-        if not planner.next_question.strip() or question_looks_invalid(planner.next_question):
+        question = str(getattr(planner, "next_question", "") or "").strip()
+        if not question or question_looks_invalid(question):
             return PlannerOutput(
                 turn_index=1,
                 main_angle="",
@@ -208,18 +237,127 @@ class UploadService:
     def _resolve_pipeline_and_engine(self):
         return resolve_pipeline(self.config)
 
+    def _prepare_media_artifacts_with_fallback(
+        self,
+        *,
+        pipeline,
+        engine,
+        artifacts,
+        shop,
+        photos: list[Path],
+        videos: list[Path],
+    ) -> tuple[dict, object]:
+        try:
+            preflight, _, _, _ = pipeline.prepare_media_artifacts(
+                artifacts=artifacts,
+                shop=shop,
+                photos=photos,
+                videos=videos,
+            )
+            return preflight, engine
+        except Exception:
+            fallback_engine = HeuristicMultimodalInterviewEngine()
+            preflight, _, _ = fallback_engine.build_preflight(shop, photos, videos)
+            write_json(artifacts.generated_dir / "media_preflight.json", preflight)
+            return preflight, fallback_engine
+
     def _ensure_collecting_media(self, session: SessionRecord) -> None:
         if session.stage != "collecting_media":
             raise UploadValidationError("업로드 단계에서만 파일을 변경할 수 있어요.")
 
     def _detect_upload_kind(self, upload: UploadFile) -> str:
+        kind, _ = self._detect_upload_descriptor(upload)
+        return kind
+
+    def _detect_upload_descriptor(self, upload: UploadFile) -> tuple[str, str | None]:
+        header_kind, header_suffix = self._detect_kind_from_header(upload)
+        if header_kind is not None:
+            return header_kind, header_suffix
+
         content_type = (upload.content_type or "").lower()
         suffix = Path(upload.filename or "").suffix.lower()
         if content_type.startswith("image/") or suffix in {".jpg", ".jpeg", ".png", ".webp", ".heic"}:
-            return "photo"
+            return "photo", None
         if content_type.startswith("video/") or suffix in {".mp4", ".mov", ".m4v", ".webm"}:
-            return "video"
+            return "video", None
         raise UploadValidationError("지원하지 않는 파일 형식이에요. 사진 또는 영상을 선택해 주세요.")
+
+    def _detect_kind_from_header(self, upload: UploadFile) -> tuple[str | None, str | None]:
+        header = self._peek_upload_header(upload, size=64)
+        if len(header) >= 3 and header[:3] == b"\xff\xd8\xff":
+            return "photo", ".jpg"
+        if len(header) >= 8 and header[:8] == b"\x89PNG\r\n\x1a\n":
+            return "photo", ".png"
+        if len(header) >= 12 and header[:4] == b"RIFF" and header[8:12] == b"WEBP":
+            return "photo", ".webp"
+        if len(header) >= 6 and header[:6] in {b"GIF87a", b"GIF89a"}:
+            return "photo", ".gif"
+        if len(header) >= 12 and header[4:8] == b"ftyp":
+            brands = [header[index:index + 4] for index in range(8, min(len(header), 32), 4)]
+            photo_brands = {
+                b"heic": ".heic",
+                b"heix": ".heic",
+                b"hevc": ".heic",
+                b"hevx": ".heic",
+                b"heim": ".heic",
+                b"heis": ".heic",
+                b"mif1": ".heif",
+                b"msf1": ".heif",
+                b"avif": ".avif",
+                b"avis": ".avif",
+            }
+            for brand, detected_suffix in photo_brands.items():
+                if brand in brands:
+                    return "photo", detected_suffix
+
+            video_brands = {
+                b"qt  ": ".mov",
+                b"M4V ": ".m4v",
+                b"M4VH": ".m4v",
+                b"M4VP": ".m4v",
+                b"isom": ".mp4",
+                b"iso2": ".mp4",
+                b"iso3": ".mp4",
+                b"iso4": ".mp4",
+                b"iso5": ".mp4",
+                b"iso6": ".mp4",
+                b"mp41": ".mp4",
+                b"mp42": ".mp4",
+                b"avc1": ".mp4",
+                b"dash": ".mp4",
+            }
+            for brand, detected_suffix in video_brands.items():
+                if brand in brands:
+                    return "video", detected_suffix
+        if len(header) >= 4 and header[:4] == b"\x1a\x45\xdf\xa3":
+            return "video", ".webm"
+        return None, None
+
+    def _peek_upload_header(self, upload: UploadFile, *, size: int) -> bytes:
+        file_obj = getattr(upload, "file", None)
+        if file_obj is None:
+            return b""
+        try:
+            position = file_obj.tell()
+        except (AttributeError, OSError):
+            position = None
+        try:
+            if position is not None:
+                file_obj.seek(0)
+            chunk = file_obj.read(size)
+            if isinstance(chunk, memoryview):
+                chunk = chunk.tobytes()
+            if isinstance(chunk, str):
+                return chunk.encode("utf-8", errors="ignore")
+            return bytes(chunk or b"")
+        except (AttributeError, OSError, io.UnsupportedOperation, TypeError):
+            return b""
+        finally:
+            if position is not None:
+                try:
+                    file_obj.seek(position)
+                except (AttributeError, OSError, io.UnsupportedOperation):
+                    pass
 
     def _validate_upload_slot(self, *, kind: str, active_uploads: list[MediaFileRecord]) -> None:
         photo_count = sum(item.kind == "photo" for item in active_uploads)
@@ -254,9 +392,50 @@ class UploadService:
             candidate += 1
         return candidate
 
-    def _resolve_suffix(self, filename: str, content_type: str | None) -> str:
+    def _resolve_suffix(self, filename: str, content_type: str | None, *, detected_suffix: str | None = None) -> str:
+        if detected_suffix:
+            return detected_suffix
         suffix = Path(filename).suffix.lower()
         if suffix and len(suffix) <= 6:
             return suffix
         guessed = mimetypes.guess_extension(content_type or "")
         return guessed or ".bin"
+
+    def _probe_video_duration_sec(self, *, payload: bytes, suffix: str) -> float | None:
+        ffprobe = shutil.which("ffprobe")
+        if not ffprobe:
+            return None
+
+        temp_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix or ".mp4") as tmp_file:
+                tmp_file.write(payload)
+                temp_path = Path(tmp_file.name)
+
+            result = subprocess.run(
+                [
+                    ffprobe,
+                    "-v",
+                    "error",
+                    "-show_entries",
+                    "format=duration",
+                    "-of",
+                    "default=noprint_wrappers=1:nokey=1",
+                    str(temp_path),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=20,
+                check=False,
+            )
+            if result.returncode != 0:
+                return None
+            output = (result.stdout or "").strip()
+            if not output:
+                return None
+            return float(output)
+        except (ValueError, OSError, subprocess.SubprocessError):
+            return None
+        finally:
+            if temp_path and temp_path.exists():
+                temp_path.unlink(missing_ok=True)

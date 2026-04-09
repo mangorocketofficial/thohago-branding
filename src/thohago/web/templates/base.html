@@ -9,8 +9,8 @@
     {% block head_extra %}{% endblock %}
 </head>
 <body>
-    <main class="page-shell">
-        <section class="card">
+    <main class="{{ page_shell_class or 'page-shell' }}">
+        <section class="{{ card_class or 'card' }}">
             {% block content %}{% endblock %}
         </section>
     </main>

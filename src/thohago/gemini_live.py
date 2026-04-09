@@ -4,53 +4,77 @@ import base64
 import json
 import mimetypes
 from pathlib import Path
-
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from thohago.heuristics import extract_keywords
 from thohago.models import MediaAsset, PlannerOutput, ShopConfig
 
 
-class AnthropicApiClient:
+class GeminiApiClient:
     def __init__(self, api_key: str, model: str) -> None:
         self.api_key = api_key
         self.model = model
-        self.base_url = "https://api.anthropic.com/v1/messages"
+        self.base_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+        self.user_agent = "thohago-phase1/0.1 (+https://local.dev)"
 
-    def create_message(self, system: str, content: list[dict], max_tokens: int = 1200) -> dict:
+    def generate_content(
+        self,
+        *,
+        system_instruction: str,
+        user_parts: list[dict],
+        max_output_tokens: int = 1200,
+        response_mime_type: str = "application/json",
+        temperature: float = 0.3,
+    ) -> dict:
         payload = {
-            "model": self.model,
-            "max_tokens": max_tokens,
-            "system": system,
-            "messages": [{"role": "user", "content": content}],
+            "system_instruction": {
+                "parts": [
+                    {"text": system_instruction},
+                ]
+            },
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": user_parts,
+                }
+            ],
+            "generationConfig": {
+                "responseMimeType": response_mime_type,
+                "maxOutputTokens": max_output_tokens,
+                "temperature": temperature,
+            },
         }
         request = Request(
             self.base_url,
             data=json.dumps(payload).encode("utf-8"),
             headers={
-                "x-api-key": self.api_key,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
+                "x-goog-api-key": self.api_key,
+                "Content-Type": "application/json",
+                "User-Agent": self.user_agent,
             },
         )
-        with urlopen(request, timeout=180) as response:
-            return json.loads(response.read().decode("utf-8"))
+        try:
+            with urlopen(request, timeout=180) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="ignore")
+            raise RuntimeError(f"Gemini API HTTP {exc.code}: {body}") from exc
 
 
-class AnthropicMultimodalInterviewEngine:
-    def __init__(self, client: AnthropicApiClient) -> None:
+class GeminiMultimodalInterviewEngine:
+    def __init__(self, client: GeminiApiClient) -> None:
         self.client = client
 
     def build_preflight(self, shop: ShopConfig, photos: list[Path], videos: list[Path]) -> tuple[dict, list[MediaAsset], list[MediaAsset]]:
         selected_photos = photos[:5]
-        response = self.client.create_message(
-            system=(
+        response = self.client.generate_content(
+            system_instruction=(
                 "You analyze beauty-shop session photos for a Korean content pipeline. "
-                "Return valid JSON only. No markdown fences, no prose."
+                "Return valid JSON only."
             ),
-            content=[
+            user_parts=[
                 {
-                    "type": "text",
                     "text": (
                         "Analyze these beauty-shop session photos.\n"
                         "Return JSON with keys: structure_mode, key_visual_evidence, "
@@ -58,11 +82,12 @@ class AnthropicMultimodalInterviewEngine:
                         "photo_annotations must be an array of objects with keys: "
                         "photo_index, scene, details, mood, selected_for_prompt.\n"
                         f"Shop hints: {', '.join(shop.media_hints) if shop.media_hints else 'none'}"
-                    ),
+                    )
                 },
-                *[self._image_content(path) for path in selected_photos],
+                *[self._image_part(path) for path in selected_photos],
             ],
-            max_tokens=1400,
+            max_output_tokens=3000,
+            temperature=0.2,
         )
         parsed = self._parse_json_text(response)
         annotations = {item["photo_index"]: item for item in parsed.get("photo_annotations", []) if isinstance(item, dict)}
@@ -107,7 +132,7 @@ class AnthropicMultimodalInterviewEngine:
             )
 
         preflight = {
-            "model_mode": f"anthropic_messages:{self.client.model}",
+            "model_mode": f"gemini_generate_content:{self.client.model}",
             "structure_mode": parsed.get("structure_mode", "key_moments"),
             "experience_sequence": [asset.media_id for asset in photo_assets],
             "representative_photo_ids": [asset.media_id for asset in photo_assets if asset.selected_for_prompt],
@@ -122,39 +147,30 @@ class AnthropicMultimodalInterviewEngine:
         return preflight, photo_assets, video_assets
 
     def plan_turn1(self, preflight: dict) -> PlannerOutput:
-        response = self.client.create_message(
-            system=(
+        response = self.client.generate_content(
+            system_instruction=(
                 "You are a shop interview planner for any industry. "
-                "Create exactly one short, natural Korean question. "
-                "Return valid JSON only with keys: main_angle, covered_elements, "
-                "missing_elements, question_strategy, next_question, evidence."
+                "Create one short, natural Korean question. "
+                "Return valid JSON only with keys: main_angle, question_strategy, next_question, evidence. "
+                "evidence must be an array of short strings."
             ),
-            content=[
+            user_parts=[
                 {
-                    "type": "text",
                     "text": (
-                        "Q1: Scene Anchor (첫 질문)\n\n"
-                        "사진을 보고, 사장님이 '그날 있었던 일'을 처음부터 끝까지 "
-                        "시간순으로 풀어놓게 만드는 질문을 1개 생성하세요.\n\n"
-                        "## 질문 목표\n"
-                        "- 누가 왔는지, 어떻게 오게 됐는지, 무슨 일이 있었는지의 전체 흐름 확보\n"
-                        "- 사진에서 보이는 구체적 단서(인원수, 장면 등)를 질문에 포함\n\n"
-                        "## 질문 형식 예시\n"
-                        "- '이 사진 속 상황이 궁금해요! 이날 어떤 일이 있었는지 "
-                        "처음부터 끝까지 쭉 들려주세요.'\n\n"
-                        "## 화자 규칙\n"
+                        "Q1: Scene Anchor\n\n"
+                        "사진을 보고, 사장님이 '그날 있었던 일'을 처음부터 끝까지 풀어놓게 만드는 질문을 1개 생성하세요.\n"
+                        "사진에서 보이는 구체적 단서를 질문에 포함하세요.\n"
+                        "평가/판단 유도 질문 금지. 설명 유도 질문 금지.\n\n"
+                        "화자 규칙:\n"
                         "- 인터뷰 대상은 사장님입니다.\n"
                         "- 사장님이 직접 보거나 들었거나 기억하는 장면만 답할 수 있어야 합니다.\n"
                         "- 고객의 마음속 감정이나 생각을 단정해서 직접 묻지 마세요.\n\n"
-                        "## 금지\n"
-                        "- '어떤 점이 특별했나요?' 같은 평가/판단 유도 질문\n"
-                        "- '차별점이 뭔가요?' 같은 설명 유도 질문\n\n"
                         f"사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
-                    ),
+                    )
                 },
-                *[self._image_content(path) for path in self._selected_photo_paths(preflight)],
+                *[self._image_part(path) for path in self._selected_photo_paths(preflight)],
             ],
-            max_tokens=1200,
+            max_output_tokens=2000,
         )
         parsed = self._parse_json_text(response)
         return PlannerOutput(
@@ -164,77 +180,48 @@ class AnthropicMultimodalInterviewEngine:
             missing_elements=[],
             question_strategy="scene_anchor",
             next_question=parsed.get("next_question", ""),
-            evidence=list(parsed.get("evidence", [])),
+            evidence=self._coerce_evidence(parsed.get("evidence")),
         )
 
     def plan_turn(self, turn_index: int, transcripts: list[str], preflight: dict) -> PlannerOutput:
-        transcript_blob = "\n".join(
-            f"Turn {index}: {text}" for index, text in enumerate(transcripts, start=1)
-        )
-
+        transcript_blob = "\n".join(f"Turn {index}: {text}" for index, text in enumerate(transcripts, start=1))
         if turn_index == 2:
-            system_msg = (
-                "You are a shop interview planner for any industry. "
-                "Create exactly one short, natural Korean follow-up question. "
-                "Return valid JSON only with keys: main_angle, question_strategy, next_question, evidence."
-            )
             user_text = (
-                "Q2: Detail Deepening (묘사 심화)\n\n"
-                "사장님의 Q1 답변을 읽고, 그 안에서 가장 묘사할 가치가 있는 "
-                "'한 순간'을 찾아서 그 순간의 감각적 디테일을 끌어내는 질문을 생성하세요.\n\n"
-                "## 순간 선택 기준 (우선순위)\n"
-                "1. 사람 간 상호작용이 있는 순간\n"
-                "2. 예상과 달랐던 순간\n"
-                "3. 분위기가 전환된 순간\n\n"
-                "## 화자 규칙\n"
+                "Q2: Detail Deepening\n\n"
+                "Q1 답변에서 가장 묘사할 가치가 있는 '한 순간'을 찾아 감각적 디테일을 끌어내는 질문을 생성하세요.\n"
+                "같은 장면 안에 머물러야 합니다. 다른 주제로 넘어가기 금지.\n\n"
+                "화자 규칙:\n"
                 "- 인터뷰 대상은 사장님입니다.\n"
                 "- 사장님이 직접 본 고객 반응, 표정, 대화, 행동, 혹은 사장님이 직접 신경 쓴 포인트만 물어야 합니다.\n"
                 "- 고객이 어떤 느낌이었는지, 무슨 생각을 했는지처럼 고객 내면 상태를 직접 묻지 마세요.\n"
                 "- 고객 감정이 필요하면 '사장님이 보시기에 고객 반응은 어땠나요?'처럼 관찰 가능한 방식으로만 물으세요.\n\n"
-                "## 금지\n"
-                "- Q1에서 이미 나온 내용을 다시 물어보기\n"
-                "- 다른 주제로 넘어가기 (같은 장면 안에 머물러야 함)\n"
-                "- '차별점', '비교' 같은 설명 유도\n\n"
-                f"Q1 답변:\n{transcript_blob}\n\n"
-                f"사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
+                f"Q1 답변:\n{transcript_blob}\n\n사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
             )
             strategy = "detail_deepening"
         else:
-            system_msg = (
-                "You are a shop interview planner for any industry. "
-                "Create exactly one short, natural Korean follow-up question. "
-                "Return valid JSON only with keys: main_angle, question_strategy, next_question, evidence."
-            )
             user_text = (
-                "Q3: Owner's Perspective (사장님의 시선)\n\n"
-                "사장님의 Q1, Q2 답변을 읽고, 이 경험에 대한 사장님의 개인적인 "
-                "시선과 의미를 끌어내는 질문을 생성하세요.\n\n"
-                "## 질문 목표\n"
-                "- '좋았습니다'가 아닌, 왜 기억에 남는지, 어떤 생각이 들었는지\n"
-                "- 사장님의 일과 삶의 맥락에서 이 경험이 갖는 의미\n\n"
-                "## 질문 형식 예시\n"
-                "- '오래 운영하시면서 많은 손님을 만나셨잖아요. 이번 경험은 좀 달랐나요?'\n"
-                "- '이분들이 다른 손님과 다르게 기억에 남는 이유가 있으세요?'\n\n"
-                "## 화자 규칙\n"
+                "Q3: Owner's Perspective\n\n"
+                "Q1+Q2 답변을 읽고, 이 경험에 대한 사장님의 개인적 시선과 의미를 끌어내는 질문을 생성하세요.\n"
+                "예/아니오 질문 금지. 미래 질문 금지. 홍보/설명 유도 금지.\n\n"
+                "화자 규칙:\n"
                 "- 인터뷰 대상은 사장님입니다.\n"
                 "- 사장님 본인의 생각, 판단, 운영 철학, 기억을 묻는 질문이어야 합니다.\n"
                 "- 고객의 속마음이나 감정을 대신 추측하게 만들지 마세요.\n\n"
-                "## 금지\n"
-                "- '보람이 있으셨나요?' 같은 예/아니오 질문\n"
-                "- '앞으로의 계획' 같은 미래 질문\n"
-                "- 가게 홍보/설명으로 빠지는 질문\n\n"
-                f"Q1+Q2 답변:\n{transcript_blob}\n\n"
-                f"사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
+                f"Q1+Q2 답변:\n{transcript_blob}\n\n사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
             )
             strategy = "owner_perspective"
-
-        response = self.client.create_message(
-            system=system_msg,
-            content=[
-                {"type": "text", "text": user_text},
-                *[self._image_content(path) for path in self._selected_photo_paths(preflight)],
+        response = self.client.generate_content(
+            system_instruction=(
+                "You are a shop interview planner for any industry. "
+                "Create one short, natural Korean follow-up question. "
+                "Return valid JSON only with keys: main_angle, question_strategy, next_question, evidence. "
+                "evidence must be an array of short strings."
+            ),
+            user_parts=[
+                {"text": user_text},
+                *[self._image_part(path) for path in self._selected_photo_paths(preflight)],
             ],
-            max_tokens=1200,
+            max_output_tokens=2000,
         )
         parsed = self._parse_json_text(response)
         return PlannerOutput(
@@ -244,7 +231,7 @@ class AnthropicMultimodalInterviewEngine:
             missing_elements=[],
             question_strategy=strategy,
             next_question=parsed.get("next_question", ""),
-            evidence=list(parsed.get("evidence", [])),
+            evidence=self._coerce_evidence(parsed.get("evidence")),
         )
 
     def build_turn_question_artifact(self, planner: PlannerOutput) -> dict:
@@ -252,15 +239,13 @@ class AnthropicMultimodalInterviewEngine:
         payload["keywords"] = extract_keywords(planner.main_angle)
         return payload
 
-    def _image_content(self, path: Path) -> dict:
+    def _image_part(self, path: Path) -> dict:
         media_type = mimetypes.guess_type(path.name)[0] or "image/jpeg"
         return {
-            "type": "image",
-            "source": {
-                "type": "base64",
-                "media_type": media_type,
+            "inline_data": {
+                "mime_type": media_type,
                 "data": base64.b64encode(path.read_bytes()).decode("ascii"),
-            },
+            }
         }
 
     def _selected_photo_paths(self, preflight: dict) -> list[Path]:
@@ -272,10 +257,19 @@ class AnthropicMultimodalInterviewEngine:
         return results[:5]
 
     def _parse_json_text(self, response: dict) -> dict:
-        blocks = response.get("content", [])
-        text = "".join(block.get("text", "") for block in blocks if block.get("type") == "text").strip()
-        if text.startswith("```"):
-            text = text.strip("`")
-            if text.startswith("json"):
-                text = text[4:].strip()
+        candidates = response.get("candidates", [])
+        if not candidates:
+            raise RuntimeError(f"Gemini response did not contain candidates: {response}")
+        content = candidates[0].get("content", {})
+        parts = content.get("parts", [])
+        text = "".join(part.get("text", "") for part in parts if isinstance(part, dict))
+        if not text.strip():
+            raise RuntimeError(f"Gemini response did not contain text content: {response}")
         return json.loads(text)
+
+    def _coerce_evidence(self, raw_value: object) -> list[str]:
+        if isinstance(raw_value, list):
+            return [str(item) for item in raw_value if str(item).strip()]
+        if isinstance(raw_value, str) and raw_value.strip():
+            return [raw_value.strip()]
+        return []

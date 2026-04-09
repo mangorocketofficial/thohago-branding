@@ -13,14 +13,14 @@ router = APIRouter()
 @router.get("/manifest.webmanifest")
 def manifest(runtime: WebRuntime = Depends(get_runtime)) -> JSONResponse:
     payload = {
-        "name": "Thohago",
-        "short_name": "Thohago",
+        "name": "또하고 모바일",
+        "short_name": "또하고",
         "start_url": "/",
         "scope": "/",
         "display": "standalone",
         "background_color": "#f7f4ec",
         "theme_color": "#6d4e21",
-        "description": "Thohago mobile intake and preview shell.",
+        "description": "모바일에서 업로드와 인터뷰를 진행하는 또하고 웹앱",
     }
     return JSONResponse(payload, media_type="application/manifest+json")
 
@@ -28,7 +28,7 @@ def manifest(runtime: WebRuntime = Depends(get_runtime)) -> JSONResponse:
 @router.get("/sw.js")
 def service_worker() -> Response:
     script = """
-const CACHE_NAME = "thohago-shell-v1";
+const CACHE_NAME = "thohago-shell-v2";
 const OFFLINE_URL = "/offline";
 const ASSETS = [OFFLINE_URL, "/manifest.webmanifest", "/static/app.css"];
 
@@ -38,10 +38,31 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key.startsWith("thohago-shell-") && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      )
+    ).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  if (url.pathname === "/static/app.css") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
   if (event.request.mode === "navigate") {
     event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE_URL)));
     return;
@@ -61,6 +82,6 @@ def offline_page(
         request,
         "offline.html",
         {
-            "title": "Offline",
+            "title": "오프라인",
         },
     )

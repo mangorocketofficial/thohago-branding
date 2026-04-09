@@ -101,7 +101,7 @@ class HeuristicMultimodalInterviewEngine:
         evidence = list(preflight.get("key_visual_evidence", []))[:2]
 
         if turn_index == 2:
-            question = "방금 말씀하신 장면에서 가장 기억에 남는 순간이 있다면, 그때 분위기나 반응을 좀 더 자세히 들려주세요."
+            question = "방금 말씀하신 장면에서 사장님이 직접 보신 고객 반응이나 표정 중 가장 기억에 남는 순간이 있다면 자세히 들려주세요."
             strategy = "detail_deepening"
         else:
             question = "이런 경험들을 하시면서 사장님 개인적으로 어떤 생각이 드셨어요?"

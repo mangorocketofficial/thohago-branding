@@ -101,6 +101,8 @@ class SessionService:
             "chat_log_path": str(artifacts.chat_log_path),
             "created_at": session.created_at,
         }
+        if session.interview_completed_at:
+            metadata["interview_completed_at"] = session.interview_completed_at
         if session.production_completed_at:
             metadata["production_completed_at"] = session.production_completed_at
         if session.approved_at:
@@ -122,6 +124,9 @@ class SessionService:
         intake_bundle_path = artifacts.generated_dir / "intake_bundle.json"
         if intake_bundle_path.exists():
             metadata["intake_bundle_path"] = str(intake_bundle_path)
+        full_transcript_candidates = sorted(artifacts.generated_dir.glob("interview_full_transcript_*.json"))
+        if full_transcript_candidates:
+            metadata["full_transcript_path"] = str(full_transcript_candidates[-1])
         preview_manifest_path = artifacts.published_dir / "manifest.json"
         if preview_manifest_path.exists():
             metadata["preview_manifest_path"] = str(preview_manifest_path)

@@ -23,6 +23,8 @@ class AppConfig:
     default_stt_provider: str
     default_publisher: str
     telegram_bot_token: str | None
+    gemini_api_key: str | None
+    gemini_model: str
     groq_api_key: str | None
     groq_vision_model: str
     groq_stt_model: str
@@ -70,13 +72,15 @@ def load_config(repo_root: Path | None = None) -> AppConfig:
         web_admin_password=os.environ.get("THOHAGO_ADMIN_PASSWORD", "thohago-dev-password"),
         web_sync_api_token=os.environ.get("THOHAGO_SYNC_API_TOKEN", "thohago-sync-dev-token"),
         web_max_upload_photos=int(os.environ.get("THOHAGO_WEB_MAX_UPLOAD_PHOTOS", "5")),
-        web_max_upload_videos=int(os.environ.get("THOHAGO_WEB_MAX_UPLOAD_VIDEOS", "1")),
-        web_max_video_duration_sec=int(os.environ.get("THOHAGO_WEB_MAX_VIDEO_DURATION_SEC", "60")),
+        web_max_upload_videos=int(os.environ.get("THOHAGO_WEB_MAX_UPLOAD_VIDEOS", "3")),
+        web_max_video_duration_sec=int(os.environ.get("THOHAGO_WEB_MAX_VIDEO_DURATION_SEC", "30")),
         web_stt_mode=os.environ.get("THOHAGO_WEB_STT_MODE", "stub"),
-        default_interview_engine=os.environ.get("THOHAGO_DEFAULT_INTERVIEW_ENGINE", "heuristic"),
+        default_interview_engine=os.environ.get("THOHAGO_DEFAULT_INTERVIEW_ENGINE", "auto"),
         default_stt_provider=os.environ.get("THOHAGO_DEFAULT_STT_PROVIDER", "sidecar"),
         default_publisher=os.environ.get("THOHAGO_DEFAULT_PUBLISHER", "mock_naver"),
         telegram_bot_token=os.environ.get("TELEGRAM_BOT_TOKEN"),
+        gemini_api_key=os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"),
+        gemini_model=os.environ.get("THOHAGO_GEMINI_MODEL", "gemini-2.5-flash"),
         groq_api_key=os.environ.get("GROQ_API_KEY"),
         groq_vision_model=os.environ.get(
             "THOHAGO_GROQ_VISION_MODEL",

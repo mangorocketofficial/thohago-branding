@@ -14,8 +14,9 @@ from thohago.registry import load_shop_registry
 from thohago.web.config import build_web_config
 from thohago.web.database import initialize_database
 from thohago.web.repositories import SessionRepository
-from thohago.web.routes import admin, customer, events, pwa, sync_api
+from thohago.web.routes import admin, customer, events, product, pwa, sync_api
 from thohago.web.runtime import WebRuntime
+from thohago.web.services.generation import ContentGenerationService
 from thohago.web.services.interview import InterviewService
 from thohago.web.services.pipeline_runtime import resolve_engine
 from thohago.web.services.sessions import SessionService
@@ -66,6 +67,12 @@ def create_app(
         event_bus=event_bus,
         transcriber=transcriber,
     )
+    generation_service = ContentGenerationService(
+        config=app_config,
+        repository=session_repository,
+        session_service=session_service,
+        sync_service=sync_service,
+    )
 
     app = FastAPI(title="Thohago Web")
     app.state.runtime = WebRuntime(
@@ -77,12 +84,14 @@ def create_app(
         session_service=session_service,
         upload_service=upload_service,
         interview_service=interview_service,
+        generation_service=generation_service,
         sync_service=sync_service,
         event_bus=event_bus,
         transcriber=transcriber,
     )
 
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+    app.include_router(product.router)
     app.include_router(customer.router)
     app.include_router(admin.router)
     app.include_router(sync_api.router)

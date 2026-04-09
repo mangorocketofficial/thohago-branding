@@ -187,6 +187,10 @@ class GroqMultimodalInterviewEngine:
                     {"type": "text", "text": (
                         "Q1: Scene Anchor\n\n사진을 보고, 사장님이 '그날 있었던 일'을 처음부터 끝까지 풀어놓게 만드는 질문을 1개 생성하세요.\n"
                         "사진의 구체적 단서를 질문에 포함. 평가/판단/설명 유도 금지.\n\n"
+                        "화자 규칙:\n"
+                        "- 인터뷰 대상은 사장님입니다.\n"
+                        "- 사장님이 직접 보거나 들었거나 기억하는 장면만 답할 수 있어야 합니다.\n"
+                        "- 고객의 마음속 감정이나 생각을 단정해서 직접 묻지 마세요.\n\n"
                         f"사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
                     )},
                     *[self._image_message(path) for path in prompt_photo_paths],
@@ -205,6 +209,11 @@ class GroqMultimodalInterviewEngine:
             user_text = (
                 "Q2: Detail Deepening\n\nQ1 답변에서 가장 묘사할 가치가 있는 '한 순간'을 찾아 감각적 디테일을 끌어내는 질문을 생성하세요.\n"
                 "같은 장면 안에 머물러야 합니다. 다른 주제 금지.\n\n"
+                "화자 규칙:\n"
+                "- 인터뷰 대상은 사장님입니다.\n"
+                "- 사장님이 직접 본 고객 반응, 표정, 대화, 행동, 혹은 사장님이 직접 신경 쓴 포인트만 물어야 합니다.\n"
+                "- 고객이 어떤 느낌이었는지, 무슨 생각을 했는지처럼 고객 내면 상태를 직접 묻지 마세요.\n"
+                "- 고객 감정이 필요하면 '사장님이 보시기에 고객 반응은 어땠나요?'처럼 관찰 가능한 방식으로만 물으세요.\n\n"
                 f"Q1 답변:\n{transcript_blob}\n\n사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
             )
             strategy = "detail_deepening"
@@ -212,6 +221,10 @@ class GroqMultimodalInterviewEngine:
             user_text = (
                 "Q3: Owner's Perspective\n\nQ1+Q2 답변을 읽고, 이 경험에 대한 사장님의 개인적 시선과 의미를 끌어내는 질문을 생성하세요.\n"
                 "예/아니오 금지. 미래 질문 금지. 홍보/설명 유도 금지.\n\n"
+                "화자 규칙:\n"
+                "- 인터뷰 대상은 사장님입니다.\n"
+                "- 사장님 본인의 생각, 판단, 운영 철학, 기억을 묻는 질문이어야 합니다.\n"
+                "- 고객의 속마음이나 감정을 대신 추측하게 만들지 마세요.\n\n"
                 f"Q1+Q2 답변:\n{transcript_blob}\n\n사진 분석:\n{json.dumps(preflight, ensure_ascii=False)}\n"
             )
             strategy = "owner_perspective"

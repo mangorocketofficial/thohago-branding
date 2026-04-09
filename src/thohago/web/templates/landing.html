@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="marketing-shell">
+    <header class="marketing-hero">
+        <p class="eyebrow">또하고 모바일</p>
+        <h1>사진과 인터뷰만 보내면 콘텐츠 초안을 만들어 드려요</h1>
+        <p class="lede">
+            모바일에서 사진과 영상을 올리고 짧은 인터뷰를 진행하면,
+            또하고가 블로그, 캐러셀, 영상, 스레드용 초안을 만드는 서비스입니다.
+        </p>
+        <div class="action-row">
+            {% if is_authenticated %}
+            <a href="/app" class="button-link">작업 공간 열기</a>
+            {% else %}
+            <a href="/app/sign-in/google" class="button-link">구글로 시작하기</a>
+            {% endif %}
+            <a href="/pricing" class="button-link secondary-button">요금 보기</a>
+        </div>
+    </header>
+
+    <section class="stats-grid">
+        <article class="stat-box">
+            <span class="stat-label">입력 방식</span>
+            <strong>사진, 영상, 음성 인터뷰</strong>
+        </article>
+        <article class="stat-box">
+            <span class="stat-label">결과 방식</span>
+            <strong>완성본 다운로드 후 직접 업로드</strong>
+        </article>
+        <article class="stat-box">
+            <span class="stat-label">작업 구조</span>
+            <strong>채팅형 워크플로</strong>
+        </article>
+    </section>
+
+    <section class="marketing-section">
+        <h2>이런 분께 맞아요</h2>
+        <ul class="feature-list">
+            <li>직접 편집은 부담스럽지만, 내 사진으로 콘텐츠를 만들고 싶은 분</li>
+            <li>모바일에서 빠르게 업로드하고 인터뷰만 진행하고 싶은 분</li>
+            <li>블로그, 캐러셀, 영상 중 필요한 것만 선택해서 만들고 싶은 분</li>
+        </ul>
+    </section>
+
+    <section class="marketing-section">
+        <h2>작업 방식</h2>
+        <ol class="feature-list ordered-list">
+            <li>새 작업을 시작하고 사진과 영상을 업로드합니다.</li>
+            <li>모바일에서 짧은 인터뷰를 진행합니다.</li>
+            <li>필요한 콘텐츠만 선택해서 생성합니다.</li>
+            <li>완성 파일을 내려받아 직접 플랫폼에 업로드합니다.</li>
+        </ol>
+    </section>
+</section>
+{% endblock %}

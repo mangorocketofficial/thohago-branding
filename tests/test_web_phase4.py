@@ -282,6 +282,8 @@ class WebPhase4Tests(unittest.TestCase):
             "THOHAGO_ADMIN_USERNAME": "phase4-admin",
             "THOHAGO_ADMIN_PASSWORD": "phase4-password",
             "THOHAGO_SYNC_API_TOKEN": "phase4-sync-token",
+            "THOHAGO_DEFAULT_INTERVIEW_ENGINE": "heuristic",
+            "GEMINI_API_KEY": "",
             "GROQ_API_KEY": "",
             "ANTHROPIC_API_KEY": "",
             "CLAUDE_API_KEY": "",

@@ -169,16 +169,8 @@ class InterviewService:
         artifacts = self.session_service.artifacts_for_session(session)
         pipeline, _ = resolve_pipeline(self.config)
         preflight = self._require_preflight(session)
-
-        source_path = self._source_path_for_turn(session, turn_index, artifacts)
-        if source_path.suffix == ".txt":
-            write_text(source_path, text)
-        transcript_artifact = pipeline.write_transcript_artifact(
-            artifacts=artifacts,
-            turn_index=turn_index,
-            source_path=source_path,
-            transcript_text=text,
-        )
+        source_relative_path = self._source_relative_path_for_turn(session, turn_index)
+        input_mode = "audio" if source_relative_path else "text"
 
         self.repository.insert_session_message(
             session_id=session.id,
@@ -186,8 +178,8 @@ class InterviewService:
             message_type="text",
             turn_index=turn_index,
             text=text,
-            relative_path=source_path.relative_to(artifacts.artifact_dir).as_posix(),
-            metadata_json={"confirmed": True},
+            relative_path=source_relative_path,
+            metadata_json={"confirmed": True, "input_mode": input_mode},
         )
         append_chat_log(
             artifacts.chat_log_path,
@@ -200,18 +192,13 @@ class InterviewService:
         )
 
         if turn_index == 1:
-            planner, planner_path = pipeline.build_turn_planner(
+            planner, planner_path = self._build_turn_planner_with_fallback(
+                pipeline=pipeline,
                 artifacts=artifacts,
                 turn_index=2,
                 transcripts=[text],
                 preflight=preflight,
             )
-            if question_looks_invalid(planner.next_question):
-                fallback_engine = HeuristicMultimodalInterviewEngine()
-                planner = fallback_engine.plan_turn(2, [text], preflight)
-                planner_path = artifacts.prompts_dir / "turn2_planner.json"
-                write_json(planner_path, fallback_engine.build_turn_question_artifact(planner))
-                write_text(artifacts.prompts_dir / "turn2_question.txt", planner.next_question)
             updated = self.repository.update_session_fields(
                 session.id,
                 stage="awaiting_turn2_answer",
@@ -228,19 +215,14 @@ class InterviewService:
             return updated
 
         if turn_index == 2:
-            transcript_texts = self._transcript_texts_for_turns(artifacts, count=2)
-            planner, planner_path = pipeline.build_turn_planner(
+            transcript_texts = self._confirmed_texts_for_turns(session.id, count=2)
+            planner, planner_path = self._build_turn_planner_with_fallback(
+                pipeline=pipeline,
                 artifacts=artifacts,
                 turn_index=3,
                 transcripts=transcript_texts,
                 preflight=preflight,
             )
-            if question_looks_invalid(planner.next_question):
-                fallback_engine = HeuristicMultimodalInterviewEngine()
-                planner = fallback_engine.plan_turn(3, transcript_texts, preflight)
-                planner_path = artifacts.prompts_dir / "turn3_planner.json"
-                write_json(planner_path, fallback_engine.build_turn_question_artifact(planner))
-                write_text(artifacts.prompts_dir / "turn3_question.txt", planner.next_question)
             updated = self.repository.update_session_fields(
                 session.id,
                 stage="awaiting_turn3_answer",
@@ -256,12 +238,24 @@ class InterviewService:
             self.session_service.write_session_metadata(updated)
             return updated
 
-        intake_bundle_path = self._write_intake_bundle(session)
+        completion_timestamp = datetime.now(UTC)
         updated = self.repository.update_session_fields(
             session.id,
             stage="awaiting_production",
             pending_answer=None,
-            interview_completed_at=datetime.now(UTC).isoformat(),
+            interview_completed_at=completion_timestamp.isoformat(),
+        )
+        full_transcript_path = self._write_full_transcript(updated, generated_at=completion_timestamp)
+        intake_bundle_path = self._write_intake_bundle(
+            updated,
+            full_transcript_path=full_transcript_path,
+            generated_at=completion_timestamp,
+        )
+        self.repository.insert_session_artifact(
+            session_id=updated.id,
+            artifact_type="full_transcript",
+            relative_path=full_transcript_path.relative_to(artifacts.artifact_dir).as_posix(),
+            metadata_json={"generated_at": completion_timestamp.isoformat()},
         )
         self.repository.insert_session_artifact(
             session_id=updated.id,
@@ -330,11 +324,46 @@ class InterviewService:
             metadata={"turn_index": turn_index, "planner_path": str(planner_path)},
         )
 
-    def _transcript_texts_for_turns(self, artifacts, *, count: int) -> list[str]:
+    def _build_turn_planner_with_fallback(
+        self,
+        *,
+        pipeline,
+        artifacts,
+        turn_index: int,
+        transcripts: list[str],
+        preflight: dict,
+    ) -> tuple[PlannerOutput, Path]:
+        try:
+            planner, planner_path = pipeline.build_turn_planner(
+                artifacts=artifacts,
+                turn_index=turn_index,
+                transcripts=transcripts,
+                preflight=preflight,
+            )
+            if planner.next_question.strip() and not question_looks_invalid(planner.next_question):
+                return planner, planner_path
+        except Exception:
+            pass
+
+        fallback_engine = HeuristicMultimodalInterviewEngine()
+        planner = fallback_engine.plan_turn(turn_index, transcripts, preflight)
+        planner_path = artifacts.prompts_dir / f"turn{turn_index}_planner.json"
+        write_json(planner_path, fallback_engine.build_turn_question_artifact(planner))
+        write_text(artifacts.prompts_dir / f"turn{turn_index}_question.txt", planner.next_question)
+        return planner, planner_path
+
+    def _confirmed_texts_for_turns(self, session_id: str, *, count: int) -> list[str]:
+        answers_by_turn = {
+            message.turn_index: message.text or ""
+            for message in self.repository.list_session_messages(session_id)
+            if message.sender == "customer" and message.message_type == "text" and message.turn_index is not None
+        }
         texts: list[str] = []
         for turn_index in range(1, count + 1):
-            transcript_path = artifacts.transcripts_dir / f"turn{turn_index}_transcript.txt"
-            texts.append(transcript_path.read_text(encoding="utf-8"))
+            text = (answers_by_turn.get(turn_index) or "").strip()
+            if not text:
+                raise InterviewValidationError(f"Confirmed answer for turn {turn_index} is missing.")
+            texts.append(text)
         return texts
 
     def _require_preflight(self, session: SessionRecord) -> dict:
@@ -342,7 +371,34 @@ class InterviewService:
             raise InterviewValidationError("Session preflight is missing.")
         return json.loads(session.preflight_json)
 
-    def _write_intake_bundle(self, session: SessionRecord) -> Path:
+    def _write_full_transcript(self, session: SessionRecord, *, generated_at: datetime) -> Path:
+        artifacts = self.session_service.artifacts_for_session(session)
+        timestamp_token = generated_at.strftime("%Y%m%dT%H%M%SZ")
+        output_path = artifacts.generated_dir / f"interview_full_transcript_{timestamp_token}.json"
+        messages = self.repository.list_session_messages(session.id)
+        payload = {
+            "shop_id": session.shop_id,
+            "session_id": session.id,
+            "session_key": session.session_key,
+            "stage": session.stage,
+            "artifact_dir": session.artifact_dir,
+            "generated_at": generated_at.isoformat(),
+            "interview_completed_at": session.interview_completed_at or generated_at.isoformat(),
+            "created_at": session.created_at,
+            "full_transcript_path": output_path.relative_to(artifacts.artifact_dir).as_posix(),
+            "turns": self._build_turn_transcript_payload(messages),
+            "messages": self._build_interview_message_payload(messages),
+        }
+        write_json(output_path, payload)
+        return output_path
+
+    def _write_intake_bundle(
+        self,
+        session: SessionRecord,
+        *,
+        full_transcript_path: Path,
+        generated_at: datetime,
+    ) -> Path:
         artifacts = self.session_service.artifacts_for_session(session)
         active_uploads = self.repository.list_media_files(session.id, role="upload")
         bundle = {
@@ -350,27 +406,92 @@ class InterviewService:
             "session_id": session.id,
             "session_key": session.session_key,
             "stage": "awaiting_production",
+            "generated_at": generated_at.isoformat(),
+            "interview_completed_at": session.interview_completed_at,
             "artifact_dir": session.artifact_dir,
             "preflight_path": "generated/media_preflight.json",
             "turn1_question_path": "planners/turn1_question.txt",
             "turn2_planner_path": "planners/turn2_planner.json",
             "turn3_planner_path": "planners/turn3_planner.json",
-            "transcript_paths": [
-                "transcripts/turn1_transcript.json",
-                "transcripts/turn2_transcript.json",
-                "transcripts/turn3_transcript.json",
-            ],
+            "full_transcript_path": full_transcript_path.relative_to(artifacts.artifact_dir).as_posix(),
             "raw_media": [media.relative_path for media in active_uploads],
         }
         output_path = artifacts.generated_dir / "intake_bundle.json"
         write_json(output_path, bundle)
         return output_path
 
-    def _source_path_for_turn(self, session: SessionRecord, turn_index: int, artifacts) -> Path:
+    def _build_turn_transcript_payload(self, messages) -> list[dict[str, object | None]]:
+        turns: list[dict[str, object | None]] = []
+        for turn_index in range(1, 4):
+            question_message = next(
+                (
+                    message
+                    for message in messages
+                    if message.sender == "system" and message.message_type == "text" and message.turn_index == turn_index
+                ),
+                None,
+            )
+            answer_message = next(
+                (
+                    message
+                    for message in messages
+                    if message.sender == "customer" and message.message_type == "text" and message.turn_index == turn_index
+                ),
+                None,
+            )
+            if question_message is None and answer_message is None:
+                continue
+            question_metadata = self._message_metadata(question_message.metadata_json) if question_message else {}
+            answer_metadata = self._message_metadata(answer_message.metadata_json) if answer_message else {}
+            turns.append(
+                {
+                    "turn_index": turn_index,
+                    "question": question_message.text if question_message else None,
+                    "question_created_at": question_message.created_at if question_message else None,
+                    "question_planner_path": question_metadata.get("planner_path"),
+                    "answer": answer_message.text if answer_message else None,
+                    "answer_created_at": answer_message.created_at if answer_message else None,
+                    "answer_input_mode": answer_metadata.get("input_mode")
+                    if answer_message
+                    else None,
+                    "answer_source_path": answer_message.relative_path if answer_message else None,
+                }
+            )
+        return turns
+
+    def _build_interview_message_payload(self, messages) -> list[dict[str, object | None]]:
+        payload: list[dict[str, object | None]] = []
+        for message in messages:
+            if message.message_type != "text" or message.turn_index is None:
+                continue
+            if message.sender not in {"system", "customer"}:
+                continue
+            payload.append(
+                {
+                    "turn_index": message.turn_index,
+                    "sender": message.sender,
+                    "text": message.text,
+                    "created_at": message.created_at,
+                    "relative_path": message.relative_path,
+                    "metadata": self._message_metadata(message.metadata_json),
+                }
+            )
+        return payload
+
+    def _source_relative_path_for_turn(self, session: SessionRecord, turn_index: int) -> str | None:
         audio_records = self.repository.list_media_files(session.id, role=f"interview_turn{turn_index}")
         if audio_records:
-            return artifacts.artifact_dir / audio_records[-1].relative_path
-        return artifacts.transcripts_dir / f"turn{turn_index}_live_input.txt"
+            return audio_records[-1].relative_path
+        return None
+
+    def _message_metadata(self, metadata_json: str | None) -> dict:
+        if not metadata_json:
+            return {}
+        try:
+            parsed = json.loads(metadata_json)
+        except json.JSONDecodeError:
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
 
     def _stage_to_turn_index(self, stage: str) -> int:
         mapping = {

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="app-shell">
+    <header class="app-header">
+        <div>
+            <p class="eyebrow">시작 설정</p>
+            <h1>반가워요, {{ user_name }}</h1>
+            <p class="lede">작업을 시작하기 전에 서비스 흐름과 결제 상태를 먼저 확인해 주세요.</p>
+        </div>
+        <a href="/app/sign-out" class="subtle-link">로그아웃</a>
+    </header>
+
+    <section class="checklist-grid">
+        <article class="checklist-card">
+            <span class="stage-chip">1</span>
+            <h2>이용 방식 확인</h2>
+            <p>사진과 인터뷰를 보내면 서버가 콘텐츠 초안을 만들고, 최종 업로드는 직접 진행합니다.</p>
+        </article>
+        <article class="checklist-card">
+            <span class="stage-chip">2</span>
+            <h2>결제 상태</h2>
+            <p>{% if payment_ready %}결제 준비가 완료되었습니다.{% else %}결제 게이트 UI는 준비되었고 실제 연동은 다음 단계에서 연결됩니다.{% endif %}</p>
+        </article>
+        <article class="checklist-card">
+            <span class="stage-chip">3</span>
+            <h2>작업 시작 준비</h2>
+            <p>설정을 마치면 작업 공간에서 새 세션을 시작할 수 있습니다.</p>
+        </article>
+    </section>
+
+    <form method="post" action="/app/onboarding/complete" class="stack compact-stack">
+        <button type="submit">작업 공간으로 이동</button>
+    </form>
+</section>
+{% endblock %}

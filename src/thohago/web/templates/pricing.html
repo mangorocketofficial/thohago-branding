@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="marketing-shell">
+    <header class="marketing-hero compact-hero">
+        <p class="eyebrow">요금 안내</p>
+        <h1>필요한 만큼 사용하는 포인트 요금제</h1>
+        <p class="lede">
+            블로그, 캐러셀, 영상처럼 결과물 유형에 따라 포인트를 차감하는 구조를 기준으로 설계합니다.
+            실제 결제 연동은 다음 단계에서 연결됩니다.
+        </p>
+        <div class="action-row">
+            {% if is_authenticated %}
+            <a href="/app" class="button-link">작업 공간 열기</a>
+            {% else %}
+            <a href="/app/sign-in/google" class="button-link">구글로 시작하기</a>
+            {% endif %}
+            <a href="/" class="button-link secondary-button">서비스 소개로 돌아가기</a>
+        </div>
+    </header>
+
+    <section class="pricing-grid">
+        <article class="pricing-card">
+            <p class="eyebrow">기본</p>
+            <h2>가볍게 시작</h2>
+            <p class="price-line">월 100 포인트</p>
+            <ul class="feature-list">
+                <li>단일 콘텐츠 위주 사용</li>
+                <li>재생성 소량 사용</li>
+                <li>모바일 작업 흐름 체험</li>
+            </ul>
+        </article>
+
+        <article class="pricing-card featured-plan">
+            <p class="eyebrow">성장</p>
+            <h2>꾸준히 운영</h2>
+            <p class="price-line">월 300 포인트</p>
+            <ul class="feature-list">
+                <li>여러 콘텐츠 타입 선택 생성</li>
+                <li>재생성 빈도 증가 대응</li>
+                <li>반복 작업에 적합한 기본 요금제</li>
+            </ul>
+        </article>
+
+        <article class="pricing-card">
+            <p class="eyebrow">확장</p>
+            <h2>높은 사용량</h2>
+            <p class="price-line">월 800 포인트</p>
+            <ul class="feature-list">
+                <li>영상 비중이 높은 사용자</li>
+                <li>다수 작업 세션 운영</li>
+                <li>높은 재생성 빈도 대응</li>
+            </ul>
+        </article>
+    </section>
+
+    <p class="notice">
+        현재 단계에서는 가격 페이지와 결제 게이트 UI만 먼저 구현합니다.
+        실제 결제 및 포인트 차감 로직은 이후 phase에서 연결됩니다.
+    </p>
+</section>
+{% endblock %}

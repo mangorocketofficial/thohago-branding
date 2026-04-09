@@ -1,0 +1,32 @@
+<aside class="app-sidebar" id="app-sidebar" aria-label="작업 세션 목록">
+    <div class="app-sidebar-head">
+        <a href="/app" class="app-brand">또하고</a>
+        <form method="post" action="/app/sessions/new" class="app-sidebar-new-session">
+            <button type="submit" class="secondary-button">새 작업</button>
+        </form>
+    </div>
+
+    <nav class="app-sidebar-nav" aria-label="세션 탐색">
+        {% if sessions %}
+        {% for item in sessions %}
+        <a
+            href="/app/session/{{ item.id }}"
+            class="app-session-link{% if current_session_id == item.id %} is-active{% endif %}"
+        >
+            <strong>{{ item.sidebar_label }}</strong>
+            <span>{{ item.sidebar_meta }}</span>
+        </a>
+        {% endfor %}
+        {% else %}
+        <div class="app-sidebar-empty">
+            아직 세션이 없습니다.
+            새 작업으로 첫 채팅을 시작해 보세요.
+        </div>
+        {% endif %}
+    </nav>
+
+    <div class="app-sidebar-foot">
+        <a href="/pricing" class="subtle-link">요금 안내</a>
+        <a href="/app/sign-out" class="subtle-link">로그아웃</a>
+    </div>
+</aside>

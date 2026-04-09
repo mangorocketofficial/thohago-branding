@@ -1,0 +1,703 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="app-frame" data-app-frame>
+    <button type="button" class="app-sidebar-backdrop" data-sidebar-close aria-label="세션 목록 닫기"></button>
+    {% include "partials/app_sidebar.html" %}
+
+    <section class="app-main">
+        <header class="app-topbar">
+            <div class="app-topbar-left">
+                <button type="button" class="icon-button app-menu-button" data-sidebar-toggle aria-label="세션 목록 열기">
+                    <svg viewBox="0 0 24 24" class="icon-svg" focusable="false">
+                        <path d="M4 7h16"></path>
+                        <path d="M4 12h16"></path>
+                        <path d="M4 17h16"></path>
+                    </svg>
+                </button>
+                <div>
+                    <p class="eyebrow">{{ stage_label }}</p>
+                    {% if view_mode == "upload" %}
+                    <h1>새 작업을 준비할게요</h1>
+                    {% elif view_mode == "interview" %}
+                    <h1>{{ question_title }}</h1>
+                    {% elif view_mode == "waiting" %}
+                    <h1>제작 준비 중</h1>
+                    {% elif view_mode == "preview" %}
+                    <h1>미리보기를 확인해 주세요</h1>
+                    {% elif view_mode == "complete" %}
+                    <h1>결과 파일을 받을 수 있어요</h1>
+                    {% else %}
+                    <h1>세션 상태</h1>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="app-topbar-meta">
+                <span class="stage-chip">{{ stage_label }}</span>
+            </div>
+        </header>
+
+        <div class="app-main-scroll">
+            {% if error_message %}
+            <div class="notice error">{{ error_message }}</div>
+            {% endif %}
+
+            {% if view_mode == "upload" %}
+            <section class="chat-thread chat-thread--wide" aria-label="세션 시작">
+                <article class="chat-message">
+                    <div class="chat-avatar chat-avatar--assistant" aria-hidden="true">또</div>
+                    <div class="chat-bubble-stack">
+                        <p class="chat-label">업로드 안내</p>
+                        <div class="chat-bubble">
+                            <p>사진과 영상을 업로드 해주세요</p>
+                            <p>(사진 최대 {{ limits.photos }}장 / 영상 최대 {{ limits.videos }}개 - {{ limits.video_seconds }}초 이내)</p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <h2>업로드 - 사진과 영상 추가</h2>
+                </div>
+                <p class="lede compact">업로드된 사진 {{ photo_count }} / {{ limits.photos }} · 업로드된 영상 {{ video_count }} / {{ limits.videos }}</p>
+                <form method="post" action="/app/session/{{ session_id }}/upload" enctype="multipart/form-data" class="stack compact-stack" data-auto-upload-form>
+                    <label class="sr-only">
+                        <span>사진과 영상 선택</span>
+                        <input
+                            type="file"
+                            name="media"
+                            accept="image/*,video/*"
+                            multiple
+                            required
+                            data-max-video-seconds="{{ limits.video_seconds }}"
+                            data-auto-upload-input
+                        >
+                    </label>
+                    <button type="button" data-auto-upload-trigger>추가하기</button>
+                </form>
+            </section>
+
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">업로드 파일</span>
+                    <h2>현재 올린 자료</h2>
+                </div>
+                {% if media_files %}
+                <ul class="upload-items">
+                    {% for media in media_files %}
+                    <li class="upload-item">
+                        <div>
+                            <strong>{{ media.filename }}</strong>
+                            <p>
+                                {% if media.kind == "photo" %}사진{% elif media.kind == "video" %}영상{% else %}파일{% endif %}
+                                {% if media.file_size %} · {{ media.file_size }}B{% endif %}
+                                {% if media.duration_sec %} · {{ "%.1f"|format(media.duration_sec) }}초{% endif %}
+                            </p>
+                        </div>
+                        <form method="post" action="/app/session/{{ session_id }}/upload/delete">
+                            <input type="hidden" name="media_file_id" value="{{ media.id }}">
+                            <button type="submit" class="secondary-button">삭제</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state">아직 업로드한 파일이 없습니다. 사진이나 영상을 먼저 추가해 주세요.</div>
+                {% endif %}
+            </section>
+
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">업로드 완료</span>
+                    <h2>인터뷰로 넘어가기</h2>
+                </div>
+                <p class="lede compact">최소 한 장의 사진이 있어야 다음 단계로 진행할 수 있어요.</p>
+                <form method="post" action="{{ upload_complete_url }}" class="stack compact-stack" data-interview-start-form>
+                    <button type="submit" data-interview-start-button>인터뷰 시작</button>
+                    <p class="composer-status is-hidden" data-interview-start-status>질문을 준비 중입니다</p>
+                </form>
+            </section>
+            {% elif view_mode == "interview" %}
+            <section class="stats-grid">
+                <article class="stat-box">
+                    <span class="stat-label">인터뷰 진행</span>
+                    <strong>{{ turn_progress }}</strong>
+                </article>
+                <article class="stat-box">
+                    <span class="stat-label">업로드 자료</span>
+                    <strong>사진 {{ photo_count }}개 · 영상 {{ video_count }}개</strong>
+                </article>
+            </section>
+
+            <section class="chat-thread chat-thread--wide" aria-label="인터뷰 대화">
+                {% with messages=conversation_messages %}
+                {% include "partials/chat_thread.html" %}
+                {% endwith %}
+
+                {% if interview_view and interview_view.is_confirming and interview_view.pending_answer %}
+                <article class="chat-message chat-message--user chat-message--pending">
+                    <div class="chat-avatar" aria-hidden="true">나</div>
+                    <div class="chat-bubble-stack">
+                        <p class="chat-label">답변 확인 중</p>
+                        <div class="chat-bubble">
+                            <p>{{ interview_view.pending_answer | replace('\n', '<br>') | safe }}</p>
+                        </div>
+                    </div>
+                </article>
+                {% endif %}
+            </section>
+
+            <section
+                class="chat-composer-shell"
+                id="voice-answer-panel"
+                data-events-url="{{ events_url }}"
+                data-record-url="{{ interview_record_url }}"
+                data-submit-url="{{ interview_submit_url }}"
+                data-retry-url="{{ interview_retry_url }}"
+                data-is-confirming="{% if interview_view and interview_view.is_confirming %}true{% else %}false{% endif %}"
+            >
+                <form method="post" action="{{ interview_submit_url }}" class="chat-inline-form" id="text-answer-form">
+                    <label class="sr-only" for="answer-textarea">답변 입력</label>
+                    <div class="composer-field">
+                        <textarea
+                            name="answer_text"
+                            rows="4"
+                            required
+                            id="answer-textarea"
+                            class="composer-textarea composer-textarea--app"
+                            {% if interview_view and interview_view.is_confirming %}readonly{% endif %}
+                            placeholder="{% if interview_view and interview_view.is_confirming %}답변을 수정하려면 내용을 고친 뒤 다시 저장해 주세요.{% else %}이번 질문에 대한 답변을 입력해 주세요.{% endif %}"
+                        >{% if interview_view and interview_view.pending_answer %}{{ interview_view.pending_answer }}{% endif %}</textarea>
+
+                        <span id="recording-indicator" class="recording-indicator composer-field-indicator is-hidden">
+                            <span class="recording-dot"></span>
+                            녹음 중
+                        </span>
+
+                        <div class="composer-inline-actions">
+                            <button
+                                type="button"
+                                id="start-recording"
+                                class="icon-button composer-mic-button"
+                                aria-label="{% if interview_view and interview_view.is_confirming %}새 음성 녹음 시작{% else %}음성 입력 시작{% endif %}"
+                            >
+                                <svg viewBox="0 0 24 24" class="icon-svg" focusable="false">
+                                    <path d="M12 4a3 3 0 0 1 3 3v4a3 3 0 1 1-6 0V7a3 3 0 0 1 3-3Z"></path>
+                                    <path d="M7.5 10.5v.5a4.5 4.5 0 0 0 9 0v-.5"></path>
+                                    <path d="M12 15.5V20"></path>
+                                    <path d="M9 20h6"></path>
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                id="stop-recording"
+                                class="icon-button composer-stop-button is-hidden"
+                                aria-label="녹음 완료"
+                            >
+                                <svg viewBox="0 0 24 24" class="icon-svg" focusable="false">
+                                    <rect x="7" y="7" width="10" height="10" rx="2"></rect>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="{% if interview_view and interview_view.is_confirming %}secondary-button{% endif %}">
+                        {% if interview_view and interview_view.is_confirming %}답변 수정하기{% else %}답변 보내기{% endif %}
+                    </button>
+                </form>
+                <p id="voice-status" class="composer-status"></p>
+            </section>
+
+            {% if interview_view and interview_view.is_confirming %}
+            <section class="button-row">
+                <form method="post" action="{{ interview_retry_url }}">
+                    <button type="submit" class="secondary-button">다시 작성하기</button>
+                </form>
+                <form method="post" action="{{ interview_confirm_url }}" data-interview-confirm-form>
+                    <button type="submit" data-interview-confirm-button>
+                        {% if interview_view.turn_index == 3 %}인터뷰 마치기{% else %}다음 질문 보기{% endif %}
+                    </button>
+                </form>
+            </section>
+            {% endif %}
+            {% elif view_mode == "waiting" %}
+            <section class="chat-thread chat-thread--wide" aria-label="제작 대기 대화">
+                {% with messages=conversation_messages %}
+                {% include "partials/chat_thread.html" %}
+                {% endwith %}
+            </section>
+
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">제작 대기</span>
+                    <h2>입력 단계는 모두 끝났어요</h2>
+                </div>
+                <p class="lede compact">현재 세션은 `awaiting_production` 상태입니다. 결과가 준비되면 같은 채팅 안에서 바로 이어서 확인할 수 있어요.</p>
+            </section>
+
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">콘텐츠 생성</span>
+                    <h2>어떤 콘텐츠를 만들까요?</h2>
+                </div>
+                <div class="button-row">
+                    <form method="post" action="{{ generate_blog_url }}">
+                        <button type="submit">블로그 글 생성하기</button>
+                    </form>
+                    <button type="button" class="secondary-button" disabled>쓰레드 글 생성하기</button>
+                    <button type="button" class="secondary-button" disabled>인스타 사진 생성하기</button>
+                    {% if video_count > 0 %}
+                    <button type="button" class="secondary-button" disabled>숏폼 영상 생성하기</button>
+                    {% endif %}
+                </div>
+            </section>
+
+            <dl class="meta-list">
+                <div>
+                    <dt>세션</dt>
+                    <dd>{{ session.id }}</dd>
+                </div>
+                <div>
+                    <dt>업로드 자료</dt>
+                    <dd>사진 {{ photo_count }}개 / 영상 {{ video_count }}개</dd>
+                </div>
+                <div>
+                    <dt>상태</dt>
+                    <dd>{{ stage_label }}</dd>
+                </div>
+            </dl>
+            {% elif view_mode == "preview" %}
+            <section class="chat-thread chat-thread--wide" aria-label="미리보기 대화">
+                {% with messages=conversation_messages %}
+                {% include "partials/chat_thread.html" %}
+                {% endwith %}
+            </section>
+
+            {% if preview_context %}
+            <section class="button-row">
+                <form method="post" action="{{ approval_action_url }}">
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit">승인하기</button>
+                </form>
+                <form method="post" action="{{ approval_action_url }}">
+                    <input type="hidden" name="action" value="revision">
+                    <button type="submit" class="secondary-button">수정 요청하기</button>
+                </form>
+            </section>
+
+            {% if preview_context.shorts_video_path %}
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">숏츠</span>
+                    <h2>영상 미리보기</h2>
+                </div>
+                <video controls class="preview-video">
+                    <source src="{{ preview_file_base_url }}/{{ preview_context.shorts_video_path }}" type="video/mp4">
+                </video>
+            </section>
+            {% endif %}
+
+            {% if preview_context.carousel_image_paths %}
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">캐러셀</span>
+                    <h2>이미지 미리보기</h2>
+                </div>
+                <div class="image-grid">
+                    {% for image_path in preview_context.carousel_image_paths %}
+                    <img src="{{ preview_file_base_url }}/{{ image_path }}" alt="캐러셀 이미지 {{ loop.index }}">
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if preview_context.blog_html_content %}
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">블로그</span>
+                    <h2>본문 미리보기</h2>
+                </div>
+                <div class="blog-preview">{{ preview_context.blog_html_content | safe }}</div>
+            </section>
+            {% endif %}
+
+            {% if preview_context.thread_text_content %}
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">스레드</span>
+                    <h2>텍스트 미리보기</h2>
+                </div>
+                <pre class="thread-preview">{{ preview_context.thread_text_content }}</pre>
+            </section>
+            {% endif %}
+            {% else %}
+            <div class="empty-state">아직 미리보기 파일이 준비되지 않았어요.</div>
+            {% endif %}
+            {% elif view_mode == "complete" %}
+            <section class="chat-thread chat-thread--wide" aria-label="승인 완료 대화">
+                {% with messages=conversation_messages %}
+                {% include "partials/chat_thread.html" %}
+                {% endwith %}
+
+                <article class="chat-message chat-message--assistant chat-message--status">
+                    <div class="chat-avatar chat-avatar--assistant" aria-hidden="true">또</div>
+                    <div class="chat-bubble-stack">
+                        <p class="chat-label">안내</p>
+                        <div class="chat-bubble">
+                            <p>승인이 완료되었어요. 이후 제작 이력은 같은 채팅 셸 안에서 계속 확인할 수 있습니다.</p>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">결과 받기</span>
+                    <h2>다운로드 준비가 끝났어요</h2>
+                </div>
+                <p class="lede compact">가장 편한 방법은 전체 결과 묶음을 한 번에 받는 거예요. 필요한 경우 아래에서 개별 파일도 따로 받을 수 있습니다.</p>
+                <div class="download-actions">
+                    <a href="{{ download_bundle_url }}" class="button-link">전체 결과 묶음 다운로드</a>
+                    <a href="/app" class="button-link button-link--secondary">메인 채팅으로 돌아가기</a>
+                </div>
+            </section>
+
+            {% if preview_context and preview_context.shorts_video_path %}
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">숏츠</span>
+                    <h2>영상 결과</h2>
+                </div>
+                <video controls class="preview-video">
+                    <source src="{{ preview_file_base_url }}/{{ preview_context.shorts_video_path }}" type="video/mp4">
+                </video>
+                <div class="download-actions">
+                    <a href="{{ download_file_base_url }}/{{ preview_context.shorts_video_path }}" class="button-link button-link--secondary">영상 파일 다운로드</a>
+                </div>
+            </section>
+            {% endif %}
+
+            {% if preview_context and preview_context.carousel_image_paths %}
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">캐러셀</span>
+                    <h2>이미지 결과</h2>
+                </div>
+                <div class="image-grid">
+                    {% for image_path in preview_context.carousel_image_paths %}
+                    <figure class="download-figure">
+                        <img src="{{ preview_file_base_url }}/{{ image_path }}" alt="캐러셀 이미지 {{ loop.index }}">
+                        <a href="{{ download_file_base_url }}/{{ image_path }}" class="button-link button-link--secondary">이미지 {{ loop.index }} 다운로드</a>
+                    </figure>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if preview_context and preview_context.blog_html_content %}
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">블로그</span>
+                    <h2>본문 결과</h2>
+                </div>
+                <div class="blog-preview">{{ preview_context.blog_html_content | safe }}</div>
+                {% if preview_context.manifest.blog_html %}
+                <div class="download-actions">
+                    <a href="{{ download_file_base_url }}/{{ preview_context.manifest.blog_html }}" class="button-link button-link--secondary">블로그 파일 다운로드</a>
+                </div>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            {% if preview_context and preview_context.thread_text_content %}
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">스레드</span>
+                    <h2>텍스트 결과</h2>
+                </div>
+                <pre class="thread-preview">{{ preview_context.thread_text_content }}</pre>
+                {% if preview_context.manifest.thread_text %}
+                <div class="download-actions">
+                    <a href="{{ download_file_base_url }}/{{ preview_context.manifest.thread_text }}" class="button-link button-link--secondary">스레드 파일 다운로드</a>
+                </div>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            <dl class="meta-list">
+                <div>
+                    <dt>세션</dt>
+                    <dd>{{ session.id }}</dd>
+                </div>
+                <div>
+                    <dt>상태</dt>
+                    <dd>{{ stage_label }}</dd>
+                </div>
+                <div>
+                    <dt>승인 시각</dt>
+                    <dd>{{ session.approved_at or "기록 대기" }}</dd>
+                </div>
+            </dl>
+            {% else %}
+            <section class="chat-rich-card">
+                <div class="composer-head">
+                    <span class="stage-chip">{{ stage_label }}</span>
+                    <h2>세션 상태</h2>
+                </div>
+                <p class="lede compact">이 세션은 현재 구현 범위를 지난 상태예요. 세션 목록에서 다른 작업을 선택해 주세요.</p>
+            </section>
+            {% endif %}
+
+        </div>
+    </section>
+</div>
+{% if view_mode == "upload" %}
+<div class="loading-modal is-hidden" data-upload-loading-modal aria-hidden="true">
+    <div class="loading-modal__scrim"></div>
+    <div class="loading-modal__dialog" role="status" aria-live="polite" aria-atomic="true">
+        <span class="loading-modal__spinner" aria-hidden="true"></span>
+        <p class="loading-modal__title">업로드 중입니다</p>
+        <p class="loading-modal__percent" data-upload-loading-percent>0%</p>
+        <div class="loading-progress" aria-hidden="true">
+            <span class="loading-progress__bar" data-upload-loading-bar></span>
+        </div>
+        <p class="loading-modal__body">선택한 사진과 영상을 서버로 전송하고 있어요.</p>
+        <p class="loading-modal__detail" data-upload-loading-detail>파일 전송을 준비하고 있어요.</p>
+    </div>
+</div>
+{% endif %}
+{% if view_mode == "interview" and interview_view and interview_view.is_confirming %}
+<div class="loading-modal is-hidden" data-interview-loading-modal aria-hidden="true">
+    <div class="loading-modal__scrim"></div>
+    <div class="loading-modal__dialog" role="status" aria-live="polite" aria-atomic="true">
+        <span class="loading-modal__spinner" aria-hidden="true"></span>
+        <p class="loading-modal__title">다음 인터뷰 질문을 준비중입니다</p>
+        <p class="loading-modal__body">잠시만 기다려주세요. 다음 단계로 이어가고 있어요.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        const frame = document.querySelector("[data-app-frame]");
+        if (!frame) {
+            return;
+        }
+
+        const openButtons = frame.querySelectorAll("[data-sidebar-toggle]");
+        const closeButtons = frame.querySelectorAll("[data-sidebar-close]");
+
+        function openSidebar() {
+            frame.classList.add("is-sidebar-open");
+        }
+
+        function closeSidebar() {
+            frame.classList.remove("is-sidebar-open");
+        }
+
+        openButtons.forEach((button) => button.addEventListener("click", openSidebar));
+        closeButtons.forEach((button) => button.addEventListener("click", closeSidebar));
+    })();
+</script>
+{% if view_mode == "upload" %}
+<script>
+    (function () {
+        const form = document.querySelector("[data-auto-upload-form]");
+        if (!form) {
+            return;
+        }
+        const input = form.querySelector("[data-auto-upload-input]");
+        const trigger = form.querySelector("[data-auto-upload-trigger]");
+        const loadingModal = document.querySelector("[data-upload-loading-modal]");
+        const loadingPercent = document.querySelector("[data-upload-loading-percent]");
+        const loadingBar = document.querySelector("[data-upload-loading-bar]");
+        const loadingDetail = document.querySelector("[data-upload-loading-detail]");
+        if (!input) {
+            return;
+        }
+
+        function setUploadProgress(ratio, detailText) {
+            const safeRatio = Math.max(0, Math.min(1, Number.isFinite(ratio) ? ratio : 0));
+            const percent = Math.round(safeRatio * 100);
+            if (loadingPercent) {
+                loadingPercent.textContent = `${percent}%`;
+            }
+            if (loadingBar) {
+                loadingBar.style.width = `${percent}%`;
+            }
+            if (loadingDetail && detailText) {
+                loadingDetail.textContent = detailText;
+            }
+        }
+
+        function showUploadLoading(detailText) {
+            if (loadingModal) {
+                loadingModal.classList.remove("is-hidden");
+                loadingModal.setAttribute("aria-hidden", "false");
+            }
+            if (trigger) {
+                trigger.disabled = true;
+            }
+            input.disabled = true;
+            setUploadProgress(0, detailText || "파일 전송을 시작하고 있어요.");
+        }
+
+        function hideUploadLoading() {
+            if (loadingModal) {
+                loadingModal.classList.add("is-hidden");
+                loadingModal.setAttribute("aria-hidden", "true");
+            }
+            if (trigger) {
+                trigger.disabled = false;
+            }
+            input.disabled = false;
+            setUploadProgress(0, "파일 전송을 준비하고 있어요.");
+        }
+
+        async function getVideoDuration(file) {
+            return new Promise((resolve) => {
+                const url = URL.createObjectURL(file);
+                const video = document.createElement("video");
+                video.preload = "metadata";
+                video.onloadedmetadata = function () {
+                    const duration = Number(video.duration || 0);
+                    URL.revokeObjectURL(url);
+                    resolve(duration);
+                };
+                video.onerror = function () {
+                    URL.revokeObjectURL(url);
+                    resolve(null);
+                };
+                video.src = url;
+            });
+        }
+
+        function uploadSingleFile(file, uploadedBytes, totalBytes, fileIndex, fileCount) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", form.action, true);
+                xhr.responseType = "json";
+                xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+                xhr.setRequestHeader("Accept", "application/json");
+
+                xhr.upload.addEventListener("progress", function (event) {
+                    if (!event.lengthComputable) {
+                        return;
+                    }
+                    const ratio = totalBytes > 0 ? (uploadedBytes + event.loaded) / totalBytes : 0;
+                    setUploadProgress(ratio, `${fileIndex} / ${fileCount} 파일 업로드 중입니다.`);
+                });
+
+                xhr.addEventListener("load", function () {
+                    const payload = xhr.response && typeof xhr.response === "object" ? xhr.response : null;
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(payload || {});
+                        return;
+                    }
+                    reject(new Error((payload && payload.error_message) || "파일 업로드에 실패했어요."));
+                });
+
+                xhr.addEventListener("error", function () {
+                    reject(new Error("네트워크 연결이 불안정해서 업로드를 마치지 못했어요."));
+                });
+
+                const formData = new FormData();
+                formData.append("media", file, file.name);
+                xhr.send(formData);
+            });
+        }
+
+        async function validateAndUpload() {
+            const maxVideoSeconds = Number(input.dataset.maxVideoSeconds || 30);
+            const files = Array.from(input.files || []);
+            if (!files.length) {
+                return;
+            }
+            const videos = files.filter((file) => String(file.type || "").startsWith("video/"));
+            for (const file of videos) {
+                const duration = await getVideoDuration(file);
+                if (duration && duration > maxVideoSeconds) {
+                    window.alert(`영상은 한 클립당 최대 ${maxVideoSeconds}초까지만 업로드할 수 있어요.`);
+                    return;
+                }
+            }
+            const totalBytes = files.reduce((sum, file) => sum + (file.size || 0), 0) || files.length;
+            let uploadedBytes = 0;
+            showUploadLoading(`1 / ${files.length} 파일 업로드를 시작합니다.`);
+            try {
+                for (let index = 0; index < files.length; index += 1) {
+                    const file = files[index];
+                    await uploadSingleFile(file, uploadedBytes, totalBytes, index + 1, files.length);
+                    uploadedBytes += file.size || 0;
+                    setUploadProgress(
+                        totalBytes > 0 ? uploadedBytes / totalBytes : (index + 1) / files.length,
+                        `${index + 1} / ${files.length} 파일 업로드를 마쳤어요.`,
+                    );
+                }
+                window.location.reload();
+            } catch (error) {
+                hideUploadLoading();
+                window.alert(error instanceof Error ? error.message : "파일 업로드에 실패했어요.");
+            } finally {
+                input.value = "";
+            }
+        }
+
+        input.addEventListener("change", function () {
+            validateAndUpload().catch(function () {
+                hideUploadLoading();
+            });
+        });
+
+        if (trigger) {
+            trigger.addEventListener("click", function () {
+                input.click();
+            });
+        }
+    })();
+</script>
+<script>
+    (function () {
+        const form = document.querySelector("[data-interview-start-form]");
+        if (!form) {
+            return;
+        }
+        const button = form.querySelector("[data-interview-start-button]");
+        const status = form.querySelector("[data-interview-start-status]");
+        if (!button || !status) {
+            return;
+        }
+
+        form.addEventListener("submit", function () {
+            button.disabled = true;
+            button.textContent = "준비 중...";
+            status.classList.remove("is-hidden");
+        });
+    })();
+</script>
+{% endif %}
+{% if view_mode == "interview" %}
+<script src="{{ request.url_for('static', path='recorder.js') }}"></script>
+{% if interview_view and interview_view.is_confirming %}
+<script>
+    (function () {
+        const form = document.querySelector("[data-interview-confirm-form]");
+        const button = document.querySelector("[data-interview-confirm-button]");
+        const modal = document.querySelector("[data-interview-loading-modal]");
+        if (!form || !button || !modal) {
+            return;
+        }
+
+        form.addEventListener("submit", function () {
+            button.disabled = true;
+            modal.classList.remove("is-hidden");
+            modal.setAttribute("aria-hidden", "false");
+        });
+    })();
+</script>
+{% endif %}
+{% endif %}
+{% endblock %}

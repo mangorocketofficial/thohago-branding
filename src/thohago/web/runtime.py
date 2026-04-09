@@ -9,6 +9,7 @@ from thohago.models import ShopConfig
 from thohago.web.event_bus import SessionEventBus
 from thohago.web.config import WebConfig
 from thohago.web.repositories import SessionRepository
+from thohago.web.services.generation import ContentGenerationService
 from thohago.web.services.interview import InterviewService
 from thohago.web.services.sessions import SessionService
 from thohago.web.services.sync import SyncService
@@ -25,6 +26,7 @@ class WebRuntime:
     session_service: SessionService
     upload_service: UploadService
     interview_service: InterviewService
+    generation_service: ContentGenerationService
     sync_service: SyncService
     event_bus: SessionEventBus
     transcriber: object
